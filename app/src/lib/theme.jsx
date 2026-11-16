@@ -20,11 +20,11 @@ export function ThemeProvider({ children }) {
     d.dataset.palette = theme.palette; d.dataset.mode = theme.mode;
     const mt = document.querySelector('meta[name="theme-color"]');
     if (mt) mt.setAttribute('content', THEME_COLOR[theme.palette + '-' + theme.mode]);
-    store('k4l-theme', { p: theme.palette, m: theme.mode });
   }, [theme]);
 
   /** Switch with a circular reveal from the clicked control (View Transitions), else a short cross-fade. */
   const switchTo = useCallback((next, originEl) => {
+    store('k4l-theme-v2', { p: next.palette, m: next.mode });  // remember only explicit choices
     const apply = () => {
       const d = document.documentElement;
       d.dataset.palette = next.palette; d.dataset.mode = next.mode;  // paint synchronously inside the transition

@@ -13,7 +13,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(channel="chrome")
     for pal, mode in themes:
         pg = b.new_page(viewport={"width": 1440, "height": 900})
-        pg.goto(base + "/"); pg.evaluate(f"localStorage.setItem('k4l-theme', JSON.stringify({{p:'{pal}', m:'{mode}'}}))")
+        pg.goto(base + "/"); pg.evaluate(f"localStorage.setItem('k4l-theme-v2', JSON.stringify({{p:'{pal}', m:'{mode}'}}))")
         pg.goto(base + "/"); pg.wait_for_timeout(1200)
         for name, sel in SECTIONS:
             if sel is None: pg.evaluate("scrollTo({ top: 0, behavior: 'instant' })")

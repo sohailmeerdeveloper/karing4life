@@ -10,10 +10,10 @@
 <script>
 /* Set palette + mode before first paint so there is no flash of the wrong theme */
 (function () { var d = document.documentElement, s = {};
-  try { s = JSON.parse(localStorage.getItem('k4l-theme') || '{}') || {}; } catch (e) {}
-  var dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+  /* default: Olive palette, light mode. Only a theme the visitor picked with the dock is remembered. */
+  try { s = JSON.parse(localStorage.getItem('k4l-theme-v2') || '{}') || {}; } catch (e) {}
   d.setAttribute('data-palette', s.p === 'forest' ? 'forest' : 'olive');
-  d.setAttribute('data-mode', s.m ? (s.m === 'dark' ? 'dark' : 'light') : (dark ? 'dark' : 'light'));
+  d.setAttribute('data-mode', s.m === 'dark' ? 'dark' : 'light');
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">

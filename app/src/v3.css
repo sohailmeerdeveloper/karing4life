@@ -288,3 +288,8 @@
   .aud-card .aud-foot { padding-top: var(--s4); }
 }
 @media (max-width: 1024px) { .aud-card { min-height: 0; } }
+
+/* theme dock lives in the bottom-LEFT corner (hosting badges sit bottom-right) */
+.theme-dock { left: 20px; right: auto; }
+@media (max-width: 640px) { .theme-dock { left: 12px; right: auto; } }
+@keyframes dockOpen { from { opacity: .6; transform: scale(.92); transform-origin: left center; } to { opacity: 1; transform: none; } }
