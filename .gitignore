@@ -1,0 +1,12 @@
+# dependencies and builds
+node_modules/
+dist/
+# local backups and scratch output
+.backup-v1/
+app/src/_gen/
+__pycache__/
+*.pyc
+# local editor / tool settings
+.claude/settings.local.json
+.DS_Store
+Thumbs.db

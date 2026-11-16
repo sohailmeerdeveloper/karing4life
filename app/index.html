@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karing4Life · Connecting New York families with caregivers, nurses and agencies</title>
+<meta name="description" content="Karing4Life connects New York families with verified nurses and caregivers. Families post care requests for free, caregivers reply directly, and agencies recruit in the regions they serve.">
+<meta name="theme-color" content="#FEFAE0">
+<link rel="icon" href="/logo-olive.webp" type="image/webp">
+<script>
+/* Set palette + mode before first paint so there is no flash of the wrong theme */
+(function () { var d = document.documentElement, s = {};
+  try { s = JSON.parse(localStorage.getItem('k4l-theme') || '{}') || {}; } catch (e) {}
+  var dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+  d.setAttribute('data-palette', s.p === 'forest' ? 'forest' : 'olive');
+  d.setAttribute('data-mode', s.m ? (s.m === 'dark' ? 'dark' : 'light') : (dark ? 'dark' : 'light'));
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

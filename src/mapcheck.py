@@ -1,0 +1,20 @@
+import sys
+from playwright.sync_api import sync_playwright
+out=sys.argv[1]; w=int(sys.argv[2])
+with sync_playwright() as p:
+    b=p.chromium.launch(channel="chrome"); pg=b.new_page(viewport={"width":w,"height":900})
+    errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)))
+    pg.goto("http://localhost:8765/Karing4Life.html#home"); pg.wait_for_timeout(500)
+    pg.evaluate("document.querySelectorAll('.reveal').forEach(e=>e.classList.add('in'));document.getElementById('nyMap').classList.add('revealed')")
+    card=pg.locator('.map-row'); card.scroll_into_view_if_needed(); pg.wait_for_timeout(300)
+    pg.locator('#nyMap .region[data-key="finger-lakes"]').hover(); pg.wait_for_timeout(300)
+    card.screenshot(path=f"{out}/map-hover-{w}.png")
+    pg.click('#mapInset'); pg.wait_for_timeout(1000)
+    card.screenshot(path=f"{out}/map-zoom-{w}.png")
+    pg.locator('#nyMap .region[data-key="manhattan"]').click(); pg.wait_for_timeout(700)
+    card.screenshot(path=f"{out}/map-manhattan-{w}.png")
+    pg.click('#mapBack'); pg.wait_for_timeout(900)
+    pg.locator('.rl-chip[data-key="bronx"]').click(); pg.wait_for_timeout(1100)
+    card.screenshot(path=f"{out}/map-bronx-{w}.png")
+    print("errors", errs)
+    b.close()
