@@ -1,36 +1,57 @@
-/* Coming-soon page + preview passcode gate. Uses the site's theme tokens. */
-.gate {
-  position: relative; min-height: 100vh; min-height: 100dvh;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: var(--s7) 16px var(--s5); background: var(--cream); color: var(--text);
-  overflow: hidden; isolation: isolate;
+/* Pre-launch email popup (WaitlistModal). Uses the site's theme tokens. */
+.wl-backdrop {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px;
+  background: rgba(20, 22, 12, .42); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: wl-fade .25s ease-out; overflow-y: auto;
 }
-.gate-glow {
-  position: absolute; inset: -20% -10% auto; height: 80%; z-index: -1; pointer-events: none;
-  background:
-    radial-gradient(40% 50% at 30% 40%, var(--orb-1), transparent 70%),
-    radial-gradient(35% 45% at 72% 35%, var(--orb-2), transparent 70%);
-  filter: blur(40px); opacity: .7;
+.wl-backdrop.out { animation: wl-fade .22s ease-in reverse forwards; }
+.wl-card {
+  position: relative; width: 100%; max-width: 560px; margin: auto; outline: 0;
+  padding: var(--s7) var(--s6) var(--s6); text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--cream); color: var(--text); border: 1px solid var(--line-strong);
+  border-radius: 28px; box-shadow: 0 30px 80px rgba(0, 0, 0, .28);
+  animation: wl-rise .35s var(--ease);
 }
-.gate-card { margin-top: auto; width: 100%; max-width: 560px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-.gate-logo { width: 72px; height: 72px; object-fit: contain; border-radius: 18px; margin-bottom: var(--s6); }
+.wl-backdrop.out .wl-card { animation: wl-rise .22s ease-in reverse forwards; }
+.wl-x {
+  position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; border: 0; border-radius: 50%;
+  display: grid; place-items: center; background: transparent; color: var(--muted); cursor: pointer;
+  transition: background var(--dur), color var(--dur);
+}
+.wl-x:hover, .wl-x:focus-visible { background: rgba(var(--olive-rgb), .12); color: var(--ink); }
+.wl-x svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.wl-logo { width: 60px; height: 60px; object-fit: contain; border-radius: 16px; margin-bottom: var(--s5); }
+.wl-title { margin: 0 0 var(--s4); font-size: clamp(26px, 4.4vw, 36px); line-height: 1.1; letter-spacing: -.03em; font-weight: 800; color: var(--ink); text-wrap: balance; }
+.wl-title.sm { font-size: clamp(22px, 3.6vw, 28px); }
+.wl-title .serif { font-family: var(--serif); font-weight: 400; font-style: italic; }
+.wl-sub { margin: 0 0 var(--s6); max-width: 44ch; font-size: 16px; line-height: 1.6; color: var(--muted); text-wrap: pretty; }
+.wl-icon { width: 64px; height: 64px; margin-bottom: var(--s5); border-radius: 50%; display: grid; place-items: center; background: rgba(var(--rust-rgb), .12); }
+.wl-icon svg { width: 30px; height: 30px; fill: none; stroke: var(--rust); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.wl-icon.ok { background: rgba(var(--ok-rgb), .14); animation: gate-pop .35s var(--ease); }
+.wl-icon.ok svg { stroke: var(--ok); stroke-width: 2.6; }
+.wl-actions { display: flex; gap: 10px; width: 100%; max-width: 420px; justify-content: center; }
+.wl-btn {
+  flex: 1; height: 52px; padding: 0 22px; border-radius: 999px; cursor: pointer;
+  font: 700 16px var(--font); transition: filter var(--dur), transform var(--dur), background var(--dur);
+}
+.wl-btn:active { transform: scale(.97); }
+.wl-primary { border: 0; background: var(--rust); color: #fff; }
+.wl-primary:hover { filter: brightness(1.07); }
+.wl-ghost { border: 1px solid var(--line-strong); background: var(--paper); color: var(--ink); }
+.wl-ghost:hover { background: rgba(var(--olive-rgb), .08); }
+.wl-btn:focus-visible, .cs-form button:focus-visible { outline: 3px solid rgba(var(--olive-rgb), .45); outline-offset: 2px; }
+
 .gate-eyebrow {
   display: inline-flex; align-items: center; gap: 8px; margin: 0 0 var(--s4);
   font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--rust-text);
 }
 .gate-eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rust); box-shadow: 0 0 0 0 rgba(var(--rust-rgb), .5); animation: gate-ping 2s infinite; }
 @keyframes gate-ping { 70% { box-shadow: 0 0 0 10px rgba(var(--rust-rgb), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--rust-rgb), 0); } }
-.gate-title { margin: 0 0 var(--s5); font-size: clamp(32px, 5.4vw, 54px); line-height: 1.08; letter-spacing: -.035em; font-weight: 800; color: var(--ink); text-wrap: balance; }
-.gate-card.cs { max-width: 700px; }
-.gate-title.sm { font-size: clamp(24px, 4.5vw, 30px); }
-.gate-title .serif { font-family: var(--serif); font-weight: 400; font-style: italic; }
-.gate-sub { margin: 0 0 var(--s7); max-width: 50ch; font-size: 17px; line-height: 1.6; color: var(--muted); text-wrap: pretty; }
-/* footer sits in the flow (never over the form); auto margins keep the card centred */
-.gate-foot { margin-top: auto; padding-top: var(--s6); font-size: 13px; color: var(--muted); }
 
 /* --- email form --- */
 .cs-form {
-  display: flex; width: 100%; max-width: 580px; padding: 8px; gap: 8px;
+  display: flex; width: 100%; max-width: 480px; padding: 8px; gap: 8px;
   background: var(--paper); border: 1px solid var(--line-strong); border-radius: 999px;
   box-shadow: var(--shadow-lg); transition: border-color var(--dur), box-shadow var(--dur);
 }
@@ -38,7 +59,7 @@
 .cs-form.is-error { border-color: #D33A2C; box-shadow: var(--shadow), 0 0 0 4px rgba(211, 58, 44, .15); animation: gate-shake .4s; }
 .cs-form input {
   flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text);
-  font: 500 19px var(--font); padding: 0 22px; height: 60px;
+  font: 500 19px var(--font); padding: 0 22px; height: 56px;
 }
 .cs-form input::placeholder { color: var(--placeholder); }
 .cs-form button {
@@ -58,53 +79,21 @@
 }
 .cs-done svg { width: 22px; height: 22px; fill: none; stroke: var(--ok); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
-/* --- passcode --- */
-.pc-badge { width: 56px; height: 56px; margin: calc(-1 * var(--s3)) 0 var(--s4); display: grid; place-items: center; }
-.pc-lock { width: 32px; height: 32px; fill: none; stroke: var(--olive); stroke-width: 1.8; stroke-linecap: round; }
-.pc-error .pc-lock { stroke: #D33A2C; }
-.pc-tick { width: 56px; height: 56px; fill: none; stroke: var(--ok); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.pc-tick circle { stroke-dasharray: 151; stroke-dashoffset: 151; animation: pc-draw .5s var(--ease) forwards; }
-.pc-tick path { stroke-dasharray: 36; stroke-dashoffset: 36; animation: pc-draw .35s .4s var(--ease) forwards; }
-@keyframes pc-draw { to { stroke-dashoffset: 0; } }
-
-.pc-boxes { display: flex; gap: 10px; justify-content: center; }
-.pc-boxes input {
-  width: 52px; height: 62px; padding: 0; text-align: center; caret-color: var(--rust);
-  font: 700 26px var(--font); color: var(--ink); background: var(--paper);
-  border: 1.5px solid var(--line-strong); border-radius: 14px; outline: 0;
-  transition: border-color var(--dur), box-shadow var(--dur), background var(--dur), transform var(--dur);
-}
-.pc-boxes input:focus { border-color: var(--olive); box-shadow: 0 0 0 4px rgba(var(--olive-rgb), .18); transform: translateY(-2px); }
-.pc-boxes input.filled { border-color: var(--olive); }
-.pc-error .pc-boxes { animation: gate-shake .45s; }
-.pc-error .pc-boxes input { border-color: #D33A2C; background: rgba(211, 58, 44, .08); color: #D33A2C; }
-.pc-ok .pc-boxes input { border-color: var(--ok); background: rgba(var(--ok-rgb), .12); color: var(--ok); }
-.pc-boxes input:disabled { opacity: 1; -webkit-text-fill-color: currentColor; }
-.pc-msg { margin: var(--s4) 0 0; min-height: 22px; font-size: 14px; font-weight: 600; color: #D33A2C; }
-.gate.pc-error::after {
-  content: ""; position: fixed; inset: 0; pointer-events: none;
-  box-shadow: inset 0 0 120px rgba(211, 58, 44, .35); animation: pc-flash .7s ease-out forwards;
-}
-@keyframes pc-flash { from { opacity: 1; } to { opacity: 0; } }
-.gate.pc-ok .gate-card { animation: pc-out .35s .8s var(--ease) forwards; }
-@keyframes pc-out { to { opacity: 0; transform: scale(.98); } }
 
 @keyframes gate-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 @keyframes gate-pop { from { opacity: 0; transform: scale(.94); } }
+@keyframes wl-fade { from { opacity: 0; } }
+@keyframes wl-rise { from { opacity: 0; transform: translateY(16px) scale(.97); } }
 
-@media (max-width: 420px) {
-  .pc-boxes { gap: 7px; }
-  .pc-boxes input { width: 44px; height: 54px; font-size: 22px; border-radius: 12px; }
-  .cs-form input { height: 54px; font-size: 17px; padding: 0 14px; }
-}
-/* Phones: arrow-only round button so the email field keeps most of the width */
 @media (max-width: 520px) {
-  .cs-form button { width: 54px; height: 54px; padding: 0; flex: none; }
+  .wl-card { padding: var(--s7) 18px var(--s5); border-radius: 24px; }
+  .wl-actions { flex-direction: column; }
+  .cs-form input { height: 52px; font-size: 17px; padding: 0 14px; }
+  /* arrow-only round button so the email field keeps most of the width */
+  .cs-form button { width: 52px; height: 52px; padding: 0; flex: none; }
   .cs-form .cs-btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .cs-form button svg { width: 22px; height: 22px; }
-  /* while the keyboard is up, leave room below so the field can scroll above it */
-  .gate.kb { padding-bottom: 55vh; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .gate *, .gate::after { animation-duration: .01ms !important; animation-delay: 0s !important; }
+  .wl-backdrop, .wl-backdrop *, .gate-eyebrow .dot { animation-duration: .01ms !important; animation-delay: 0s !important; }
 }
