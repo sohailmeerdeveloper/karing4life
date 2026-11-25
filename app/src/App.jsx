@@ -8,6 +8,9 @@ import { Header, MobileMenu } from './components/Header.jsx';
 import { Footer } from './components/Footer.jsx';
 import { ThemeDock } from './components/ThemeDock.jsx';
 import HomePage from './pages/HomePage.jsx';
+import ComingSoon from './pages/ComingSoon.jsx';
+import PasscodeGate from './pages/PasscodeGate.jsx';
+import { isUnlocked, PREVIEW_PATH } from './lib/access.js';
 
 // Every page except Home is split into its own chunk and loaded on demand.
 const LOAD = {
@@ -94,11 +97,25 @@ function Layout() {
   );
 }
 
+/* Pre-launch: visitors get the coming-soon page; the full site needs the passcode at PREVIEW_PATH. */
+function Gate() {
+  const [unlocked, setUnlocked] = useState(isUnlocked);
+  const navigate = useNavigate();
+  if (unlocked) return <Layout />;
+  return (
+    <Routes>
+      <Route path={PREVIEW_PATH} element={<PasscodeGate onUnlock={() => { setUnlocked(true); navigate('/', { replace: true }); }} />} />
+      <Route path="/" element={<ComingSoon />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
 export default function App() {
   return (
     <ThemeProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Layout />
+        <Gate />
       </BrowserRouter>
     </ThemeProvider>
   );

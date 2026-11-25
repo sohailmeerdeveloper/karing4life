@@ -1,0 +1,98 @@
+/* Coming-soon page + preview passcode gate. Uses the site's theme tokens. */
+.gate {
+  position: relative; min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: var(--s7) 16px var(--s6); background: var(--cream); color: var(--text);
+  overflow: hidden; isolation: isolate;
+}
+.gate-glow {
+  position: absolute; inset: -20% -10% auto; height: 80%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 30% 40%, var(--orb-1), transparent 70%),
+    radial-gradient(35% 45% at 72% 35%, var(--orb-2), transparent 70%);
+  filter: blur(40px); opacity: .7;
+}
+.gate-card { width: 100%; max-width: 560px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.gate-logo { width: 72px; height: 72px; object-fit: contain; border-radius: 18px; margin-bottom: var(--s6); }
+.gate-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px; margin: 0 0 var(--s4);
+  font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--rust-text);
+}
+.gate-eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rust); box-shadow: 0 0 0 0 rgba(var(--rust-rgb), .5); animation: gate-ping 2s infinite; }
+@keyframes gate-ping { 70% { box-shadow: 0 0 0 10px rgba(var(--rust-rgb), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--rust-rgb), 0); } }
+.gate-title { margin: 0 0 var(--s4); font-size: clamp(30px, 6vw, 46px); line-height: 1.1; letter-spacing: -.02em; font-weight: 700; color: var(--ink); text-wrap: balance; }
+.gate-title.sm { font-size: clamp(24px, 4.5vw, 30px); }
+.gate-title .serif { font-family: var(--serif); font-weight: 400; font-style: italic; }
+.gate-sub { margin: 0 0 var(--s6); max-width: 46ch; font-size: 16px; line-height: 1.6; color: var(--muted); text-wrap: pretty; }
+.gate-foot { position: absolute; bottom: var(--s5); font-size: 13px; color: var(--muted); }
+
+/* --- email form --- */
+.cs-form {
+  display: flex; width: 100%; max-width: 440px; padding: 6px; gap: 6px;
+  background: var(--paper); border: 1px solid var(--line-strong); border-radius: 999px;
+  box-shadow: var(--shadow); transition: border-color var(--dur), box-shadow var(--dur);
+}
+.cs-form:focus-within { border-color: var(--olive); box-shadow: var(--shadow), 0 0 0 4px rgba(var(--olive-rgb), .18); }
+.cs-form.is-error { border-color: #D33A2C; box-shadow: var(--shadow), 0 0 0 4px rgba(211, 58, 44, .15); animation: gate-shake .4s; }
+.cs-form input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text);
+  font: 500 16px var(--font); padding: 0 16px;
+}
+.cs-form input::placeholder { color: var(--placeholder); }
+.cs-form button {
+  flex: none; border: 0; border-radius: 999px; padding: 12px 22px; cursor: pointer;
+  font: 600 15px var(--font); background: var(--rust); color: #fff; transition: filter var(--dur), transform var(--dur);
+}
+.cs-form button:hover { filter: brightness(1.07); }
+.cs-form button:active { transform: scale(.97); }
+.cs-form button:disabled { opacity: .7; cursor: default; }
+.cs-hint { margin: var(--s3) 0 0; min-height: 20px; font-size: 13px; color: var(--muted); }
+.cs-hint.err { color: #D33A2C; }
+.cs-done {
+  display: inline-flex; align-items: center; gap: 10px; margin: 0; padding: 14px 22px; border-radius: 999px;
+  background: rgba(var(--ok-rgb), .12); color: var(--ink); font-weight: 600; animation: gate-pop .35s var(--ease);
+}
+.cs-done svg { width: 22px; height: 22px; fill: none; stroke: var(--ok); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* --- passcode --- */
+.pc-badge { width: 56px; height: 56px; margin: calc(-1 * var(--s3)) 0 var(--s4); display: grid; place-items: center; }
+.pc-lock { width: 32px; height: 32px; fill: none; stroke: var(--olive); stroke-width: 1.8; stroke-linecap: round; }
+.pc-error .pc-lock { stroke: #D33A2C; }
+.pc-tick { width: 56px; height: 56px; fill: none; stroke: var(--ok); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.pc-tick circle { stroke-dasharray: 151; stroke-dashoffset: 151; animation: pc-draw .5s var(--ease) forwards; }
+.pc-tick path { stroke-dasharray: 36; stroke-dashoffset: 36; animation: pc-draw .35s .4s var(--ease) forwards; }
+@keyframes pc-draw { to { stroke-dashoffset: 0; } }
+
+.pc-boxes { display: flex; gap: 10px; justify-content: center; }
+.pc-boxes input {
+  width: 52px; height: 62px; padding: 0; text-align: center; caret-color: var(--rust);
+  font: 700 26px var(--font); color: var(--ink); background: var(--paper);
+  border: 1.5px solid var(--line-strong); border-radius: 14px; outline: 0;
+  transition: border-color var(--dur), box-shadow var(--dur), background var(--dur), transform var(--dur);
+}
+.pc-boxes input:focus { border-color: var(--olive); box-shadow: 0 0 0 4px rgba(var(--olive-rgb), .18); transform: translateY(-2px); }
+.pc-boxes input.filled { border-color: var(--olive); }
+.pc-error .pc-boxes { animation: gate-shake .45s; }
+.pc-error .pc-boxes input { border-color: #D33A2C; background: rgba(211, 58, 44, .08); color: #D33A2C; }
+.pc-ok .pc-boxes input { border-color: var(--ok); background: rgba(var(--ok-rgb), .12); color: var(--ok); }
+.pc-boxes input:disabled { opacity: 1; -webkit-text-fill-color: currentColor; }
+.pc-msg { margin: var(--s4) 0 0; min-height: 22px; font-size: 14px; font-weight: 600; color: #D33A2C; }
+.gate.pc-error::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 120px rgba(211, 58, 44, .35); animation: pc-flash .7s ease-out forwards;
+}
+@keyframes pc-flash { from { opacity: 1; } to { opacity: 0; } }
+.gate.pc-ok .gate-card { animation: pc-out .35s .8s var(--ease) forwards; }
+@keyframes pc-out { to { opacity: 0; transform: scale(.98); } }
+
+@keyframes gate-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+@keyframes gate-pop { from { opacity: 0; transform: scale(.94); } }
+
+@media (max-width: 420px) {
+  .pc-boxes { gap: 7px; }
+  .pc-boxes input { width: 44px; height: 54px; font-size: 22px; border-radius: 12px; }
+  .cs-form button { padding: 12px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gate *, .gate::after { animation-duration: .01ms !important; animation-delay: 0s !important; }
+}
