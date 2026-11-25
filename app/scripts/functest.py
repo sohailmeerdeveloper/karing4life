@@ -52,14 +52,10 @@ with sync_playwright() as p:
     pg.click("#joinSubmit"); pg.wait_for_timeout(300)
     check("join: validation toast", "missing" in pg.inner_text(".toast-wrap"))
 
-    # theme dock
+    # single theme: no dock, Olive logo
     pg.goto(base + "/"); pg.wait_for_timeout(700)
-    pg.click(".td-mode"); pg.wait_for_timeout(900)
-    pg.click(".td-palette"); pg.wait_for_timeout(900)
-    check("theme: forest/dark applied", pg.evaluate("document.documentElement.dataset.palette + '/' + document.documentElement.dataset.mode") == "forest/dark")
-    check("theme: forest logo", "logo-forest" in pg.get_attribute(".brand img", "src"))
-    pg.reload(); pg.wait_for_timeout(700)
-    check("theme: persisted after reload", pg.evaluate("document.documentElement.dataset.palette") == "forest")
+    check("theme: no theme dock", pg.query_selector(".theme-dock") is None)
+    check("theme: olive logo", "logo-olive" in pg.get_attribute(".brand img", "src"))
 
     # map
     pg.evaluate("document.getElementById('map-section').scrollIntoView({behavior:'instant'})"); pg.wait_for_timeout(600)

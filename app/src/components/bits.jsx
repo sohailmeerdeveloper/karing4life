@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { CARE, GROUPS, REGIONS, STEPS, MOCK } from '../data/data.js';
-import { LOGOS, useTheme } from '../lib/theme.jsx';
 import { REDUCED } from '../lib/hooks.js';
 import { Icon } from './Icon.jsx';
 
 export { Icon };
 
 export function LogoImg({ alt = 'Karing4Life logo', ...rest }) {
-  const { palette } = useTheme();
-  return <img src={LOGOS[palette]} alt={alt} decoding="async" {...rest} />;
+  return <img src="/logo-olive.webp" alt={alt} decoding="async" {...rest} />;
 }
 
 export function CareOptions({ any = 'Any' }) {

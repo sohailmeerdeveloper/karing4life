@@ -1,12 +1,10 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ThemeProvider } from './lib/theme.jsx';
 import { Toasts } from './lib/toast.jsx';
 import { useReveal } from './lib/hooks.js';
 import { Sprite } from './components/Sprite.jsx';
 import { Header, MobileMenu } from './components/Header.jsx';
 import { Footer } from './components/Footer.jsx';
-import { ThemeDock } from './components/ThemeDock.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ComingSoon from './pages/ComingSoon.jsx';
 import PasscodeGate from './pages/PasscodeGate.jsx';
@@ -91,7 +89,6 @@ function Layout() {
         </Suspense>
       </main>
       <Footer />
-      <ThemeDock />
       <Toasts />
     </>
   );
@@ -113,10 +110,8 @@ function Gate() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Gate />
-      </BrowserRouter>
-    </ThemeProvider>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Gate />
+    </BrowserRouter>
   );
 }

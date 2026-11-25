@@ -48,7 +48,6 @@
 
 /* lighter glass: smaller blur radii on the always-visible layers */
 .mainbar { -webkit-backdrop-filter: saturate(1.6) blur(14px); backdrop-filter: saturate(1.6) blur(14px); }
-.theme-dock { -webkit-backdrop-filter: blur(12px) saturate(1.5); backdrop-filter: blur(12px) saturate(1.5); }
 .hero-kicker, .map-hint { -webkit-backdrop-filter: none; backdrop-filter: none; }
 .brand-text { justify-content: center; }
 
@@ -289,7 +288,3 @@
 }
 @media (max-width: 1024px) { .aud-card { min-height: 0; } }
 
-/* theme dock lives in the bottom-LEFT corner (hosting badges sit bottom-right) */
-.theme-dock { left: 20px; right: auto; }
-@media (max-width: 640px) { .theme-dock { left: 12px; right: auto; } }
-@keyframes dockOpen { from { opacity: .6; transform: scale(.92); transform-origin: left center; } to { opacity: 1; transform: none; } }
