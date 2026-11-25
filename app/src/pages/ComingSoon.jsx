@@ -6,12 +6,24 @@ import '../gate.css';
 export default function ComingSoon() {
   const [email, setEmail] = useState('');
   const [state, setState] = useState('idle');  // idle | sending | done | error
+  const [kb, setKb] = useState(false);  // phone keyboard open
   const input = useRef(null);
+  const form = useRef(null);
 
   useEffect(() => {
     document.title = 'Karing4Life · Coming soon';
-    input.current?.focus({ preventScroll: true });
+    // Desktop: cursor waits in the field. Phones: no auto-focus, so the keyboard doesn't cover the page on arrival.
+    if (window.matchMedia('(pointer: fine)').matches) input.current?.focus({ preventScroll: true });
   }, []);
+
+  /* Phones: once the keyboard is up, scroll the field into the middle of what's still visible. */
+  const onFocus = () => {
+    if (!window.matchMedia('(pointer: coarse)').matches) return;
+    setKb(true);
+    const show = () => form.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    window.visualViewport?.addEventListener('resize', show, { once: true });
+    setTimeout(show, 350);
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -22,7 +34,7 @@ export default function ComingSoon() {
   };
 
   return (
-    <div className="gate">
+    <div className={'gate' + (kb ? ' kb' : '')}>
       <div className="gate-glow" aria-hidden="true" />
       <main className="gate-card cs">
         <LogoImg className="gate-logo" />
@@ -39,12 +51,16 @@ export default function ComingSoon() {
             You're on the list. We'll email you the day we open.
           </p>
         ) : (
-          <form className={'cs-form' + (state === 'error' ? ' is-error' : '')} onSubmit={submit} noValidate>
+          <form ref={form} className={'cs-form' + (state === 'error' ? ' is-error' : '')} onSubmit={submit} noValidate>
             <label htmlFor="cs-email" className="sr-only">Email address</label>
             <input id="cs-email" ref={input} type="email" inputMode="email" autoComplete="email" placeholder="you@email.com"
+              onFocus={onFocus} onBlur={() => setTimeout(() => { if (document.activeElement !== input.current) setKb(false); }, 400)}
               value={email} aria-invalid={state === 'error'} aria-describedby="cs-hint"
               onChange={(e) => { setEmail(e.target.value); if (state === 'error') setState('idle'); }} />
-            <button type="submit" disabled={state === 'sending'}>{state === 'sending' ? 'Adding…' : 'Notify me'}</button>
+            <button type="submit" disabled={state === 'sending'} aria-label="Notify me">
+              <span className="cs-btn-text">{state === 'sending' ? 'Adding…' : 'Notify me'}</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </button>
           </form>
         )}
         <p id="cs-hint" className={'cs-hint' + (state === 'error' ? ' err' : '')} aria-live="polite">
