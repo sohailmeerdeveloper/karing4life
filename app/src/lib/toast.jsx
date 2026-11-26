@@ -1,18 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../components/Icon.jsx';
 
-/* Tiny toast bus: call toast(title, body) from anywhere; <Toasts/> renders them. */
+/* Tiny toast bus: toast(title, body, kind) from anywhere; <Toasts/> renders them.
+   kind: 'ok' (default) | 'error' | 'info' */
 const listeners = new Set();
 let id = 0;
-export function toast(title, body) { const t = { id: ++id, title, body }; listeners.forEach((l) => l(t)); }
+export function toast(title, body, kind = 'ok') { const t = { id: ++id, title, body, kind }; listeners.forEach((l) => l(t)); }
+toast.error = (title, body) => toast(title, body, 'error');
+toast.info = (title, body) => toast(title, body, 'info');
+
+const ICON = { ok: 'check-circle', error: 'info', info: 'info' };
 
 export function Toasts() {
   const [items, setItems] = useState([]);
   useEffect(() => {
     const on = (t) => {
-      setItems((xs) => [...xs, t]);
-      setTimeout(() => setItems((xs) => xs.map((x) => (x.id === t.id ? { ...x, out: true } : x))), 3800);
-      setTimeout(() => setItems((xs) => xs.filter((x) => x.id !== t.id)), 4050);
+      setItems((xs) => [...xs.slice(-3), t]);
+      const ms = t.kind === 'error' ? 6000 : 3800;
+      setTimeout(() => setItems((xs) => xs.map((x) => (x.id === t.id ? { ...x, out: true } : x))), ms);
+      setTimeout(() => setItems((xs) => xs.filter((x) => x.id !== t.id)), ms + 250);
     };
     listeners.add(on);
     return () => listeners.delete(on);
@@ -20,8 +26,8 @@ export function Toasts() {
   return (
     <div className="toast-wrap" aria-live="polite" aria-atomic="false">
       {items.map((t) => (
-        <div key={t.id} className={'toast' + (t.out ? ' out' : '')} role="status">
-          <Icon name="check-circle" />
+        <div key={t.id} className={'toast toast-' + t.kind + (t.out ? ' out' : '')} role={t.kind === 'error' ? 'alert' : 'status'}>
+          <Icon name={ICON[t.kind] || 'check-circle'} />
           <div><strong>{t.title}</strong>{t.body && <span>{t.body}</span>}</div>
         </div>
       ))}

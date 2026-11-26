@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon, LogoImg } from './bits.jsx';
 import { useScrolled } from '../lib/hooks.js';
+import { useAuth } from '../lib/auth.jsx';
 
 const NAV_OF = { how: 'how', requests: 'caregivers', families: 'families', caregivers: 'caregivers', membership: 'caregivers', agencies: 'agencies', about: 'about', contact: 'contact' };
 
@@ -70,6 +71,7 @@ export function Header({ onOpenMenu, menuOpen }) {
     return () => document.removeEventListener('click', close);
   }, []);
   const nav = NAV_OF[page];
+  const { user } = useAuth() || {};
   const simple = [['how', 'How it works'], ['about', 'About'], ['contact', 'Contact']];
   return (
     <header className={'site-header' + (scrolled ? ' scrolled' : '')} id="siteHeader">
@@ -100,9 +102,14 @@ export function Header({ onOpenMenu, menuOpen }) {
             ))}
           </nav>
           <div className="header-actions">
-            <a className="signin-link" href="/signin"><Icon name="user" />Sign in</a>
-            <a className="btn btn-accent btn-sm btn-join" href="/join">Join free</a>
-            <a className="btn btn-accent btn-join-m" href="/join">Join free</a>
+            {user ? (<>
+              <a className="btn btn-primary btn-sm btn-join" href="/portal"><Icon name="user" />My portal</a>
+              <a className="btn btn-primary btn-join-m" href="/portal">Portal</a>
+            </>) : (<>
+              <a className="signin-link" href="/signin"><Icon name="user" />Sign in</a>
+              <a className="btn btn-accent btn-sm btn-join" href="/join">Join free</a>
+              <a className="btn btn-accent btn-join-m" href="/join">Join free</a>
+            </>)}
             <button className="menu-toggle" id="menuOpen" aria-label="Open menu" aria-expanded={menuOpen} aria-controls="mobileMenu" onClick={onOpenMenu}><Icon name="menu" /></button>
           </div>
         </div>
@@ -115,12 +122,13 @@ const MM = [
   ['heart', 'Families', [['/families', 'For families'], ['/join?role=family', 'Post a care request']]],
   ['steth', 'Caregivers & nurses', [['/caregivers', 'For caregivers'], ['/requests', 'Browse care requests'], ['/membership', 'Membership & regions']]],
   ['building', 'Agencies & facilities', [['/agencies', 'For agencies'], ['/join?role=agency', 'Create an agency profile']]],
-  ['info', 'Karing4Life', [['/how', 'How it works'], ['/about', 'About'], ['/contact', 'Contact']]],
+  ['info', 'Karing4Life', [['/how', 'How it works'], ['/pricing', 'Pricing'], ['/kommunity', 'Kommunity Korner'], ['/faq', 'FAQ'], ['/about', 'About'], ['/contact', 'Contact']]],
 ];
 
 export function MobileMenu({ open, onClose }) {
   const { pathname } = useLocation();
   const closeRef = useRef(null);
+  const { user } = useAuth() || {};
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
     if (open) setTimeout(() => closeRef.current?.focus(), 50);
@@ -144,8 +152,10 @@ export function MobileMenu({ open, onClose }) {
         ))}
       </div>
       <div className="mm-foot">
-        <a className="btn btn-ghost" href="/signin">Sign in</a>
-        <a className="btn btn-accent" href="/join">Join free</a>
+        {user ? <a className="btn btn-primary" href="/portal" style={{ gridColumn: '1 / -1' }}>Go to my portal</a> : (<>
+          <a className="btn btn-ghost" href="/signin">Sign in</a>
+          <a className="btn btn-accent" href="/join">Join free</a>
+        </>)}
       </div>
     </div>
   );

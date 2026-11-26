@@ -1,13 +1,19 @@
 import { useTitle } from '../lib/hooks.js';
 import { toast } from '../lib/toast.jsx';
+import { supabase } from '../lib/supabase.js';
 import { CtaBand, AUDIENCE_TILES } from '../components/bits.jsx';
 
 export default function ContactPage() {
   useTitle('Contact · Karing4Life');
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     const f = e.currentTarget, bad = Array.from(f.querySelectorAll('[required]')).filter((i) => !i.checkValidity());
-    if (bad.length) { bad[0].focus(); toast('Please complete the form', 'Name, a valid email and a message are needed.'); return; }
+    if (bad.length) { bad[0].focus(); toast.error('Please complete the form', 'Name, a valid email and a message are needed.'); return; }
+    const v = (id) => f.querySelector('#' + id)?.value?.trim() || null;
+    const btn = f.querySelector('button[type=submit]'); if (btn) btn.disabled = true;
+    const { error } = await supabase.from('contact_messages').insert({ name: v('cName'), email: v('cEmail').toLowerCase(), role: v('cRole'), subject: v('cSubject'), message: v('cMsg') });
+    if (btn) btn.disabled = false;
+    if (error) { toast.error('Message not sent', 'Please check your connection and try again, or email info@karing4life.com.'); return; }
     toast('Message sent', 'Thanks! A member of the team will reply within one business day.'); f.reset();
   };
   return (
@@ -121,7 +127,7 @@ export default function ContactPage() {
                 <div className="field"><label htmlFor="cSubject">Subject</label><input className="input" id="cSubject" placeholder="e.g. Using my trial code" /></div>
                 <div className="field full"><label htmlFor="cMsg">Message</label><textarea className="textarea" id="cMsg" required placeholder="How can we help?" /></div>
                 <div className="full" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                  <span className="small muted">This is a demo form. Nothing is sent.</span>
+                  <span className="small muted">We reply within one business day.</span>
                   <button className="btn btn-accent" type="submit"><svg className="i" aria-hidden="true"><use href="#i-send" /></svg>Send message</button>
                 </div>
               </div>

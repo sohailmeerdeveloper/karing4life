@@ -4,6 +4,11 @@ import { CareOptions, RegionChips, RegionOptions, Icon } from '../components/bit
 import { PwToggle } from '../components/PwToggle.jsx';
 import { ROLE_COPY, R, CARE_BY } from '../data/data.js';
 import { toast } from '../lib/toast.jsx';
+import { useNavigate } from 'react-router-dom';
+import { supabase, errText } from '../lib/supabase.js';
+import { PRELAUNCH } from '../lib/config.js';
+import { openPrelaunch } from '../lib/prelaunch.js';
+import { GoogleButton } from '../components/GoogleButton.jsx';
 
 const NEXT = { family: 'Next you’ll write your first care request.', caregiver: 'Next you’ll upload your license or ID for review.', agency: 'Next we’ll review your EIN, website and contact.' };
 
@@ -13,13 +18,15 @@ export default function JoinPage() {
   const [role, setRole] = useState('family');
   const [formKey, setFormKey] = useState(0);
   const formRef = useRef(null);
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
   useEffect(() => { if (ROLE_COPY[params.role]) setRole(params.role); setFormKey((k) => k + 1); }, [params.role, params.region, params.care]);
   const region = R[params.region] ? params.region : '';
   const care = CARE_BY[params.care] ? params.care : '';
   const copy = ROLE_COPY[role];
   // pre-tick the region chip passed in the URL
   useEffect(() => { if (region) formRef.current?.querySelectorAll(`input[value="${region}"]`).forEach((c) => { c.checked = true; }); }, [formKey, role, region]);
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     const form = e.currentTarget;
     const fields = Array.from(form.querySelectorAll('input,select,textarea'));
@@ -29,7 +36,17 @@ export default function JoinPage() {
       bad.forEach((i) => { if (i.classList.contains('input') || i.classList.contains('select')) i.style.borderColor = 'var(--rust)'; });
       bad[0].focus(); toast('A few details are missing', 'Please fill in the highlighted fields and accept the terms.'); return;
     }
-    toast('Account created', NEXT[role]);
+    const val = (id) => form.querySelector('#' + id)?.value?.trim() || '';
+    if (PRELAUNCH) { openPrelaunch('signup', val('jEmail')); return; }
+    setBusy(true);
+    const { data, error } = await supabase.auth.signUp({
+      email: val('jEmail'), password: form.querySelector('#jPw').value,
+      options: { emailRedirectTo: window.location.origin + '/portal', data: { role, full_name: val('jName'), business_name: val('aBiz') } },
+    });
+    setBusy(false);
+    if (error) { toast.error('Couldn’t create your account', errText(error)); return; }
+    if (data.session) { toast('Account created', NEXT[role]); navigate('/portal/' + role + '/onboarding'); }
+    else toast('Check your email', 'Click the link we sent to confirm your address, then sign in.');
     form.reset();
   };
   return (
@@ -74,7 +91,9 @@ export default function JoinPage() {
           <form className="join-form" id="joinForm" noValidate key={formKey} ref={formRef} onSubmit={onSubmit}>
             <h2 id="joinTitle">{copy.title}</h2>
             <p className="jf-sub" id="joinSub">{copy.sub}</p>
-            <div className="form-grid" style={{ marginTop: '24px' }}>
+            <GoogleButton role={role} style={{ marginTop: 20 }} />
+            <div className="sc-divider">or with email</div>
+            <div className="form-grid">
               <div className="field"><label htmlFor="jName">Full name</label><input className="input" id="jName" autoComplete="name" required /></div>
               <div className="field"><label htmlFor="jEmail">Email</label><input className="input" id="jEmail" type="email" autoComplete="email" required /></div>
               <div className="field full">
@@ -173,12 +192,12 @@ export default function JoinPage() {
               <div className="full" style={{ marginTop: '8px' }}>
                 <label className="check">
                   <input type="checkbox" id="jTerms" required />
-                  <span>I agree to the <a href="/about">Terms of Service</a> and <a href="/about">Privacy Policy</a>.</span>
+                  <span>I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</span>
                 </label>
               </div>
               <div className="full" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginTop: '8px' }}>
                 <span className="small muted">Already have an account? <a href="/signin" style={{ fontWeight: '700' }}>Sign in</a></span>
-                <button className="btn btn-accent btn-lg" type="submit" id="joinSubmit">{copy.btn}</button>
+                <button className="btn btn-accent btn-lg" type="submit" id="joinSubmit" disabled={busy}>{busy ? 'Creating…' : copy.btn}</button>
               </div>
             </div>
           </form>
