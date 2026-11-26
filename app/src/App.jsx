@@ -7,6 +7,9 @@ import { Header, MobileMenu } from './components/Header.jsx';
 import { Footer } from './components/Footer.jsx';
 import HomePage from './pages/HomePage.jsx';
 import WaitlistModal from './components/WaitlistModal.jsx';
+import { AuthProvider } from './lib/auth.jsx';
+
+const PortalApp = lazy(() => import('./portal/PortalApp.jsx'));
 
 // Every page except Home is split into its own chunk and loaded on demand.
 const LOAD = {
@@ -20,6 +23,13 @@ const LOAD = {
   contact: () => import('./pages/ContactPage.jsx'),
   join: () => import('./pages/JoinPage.jsx'),
   signin: () => import('./pages/SigninPage.jsx'),
+  'reset-password': () => import('./pages/ResetPage.jsx'),
+  pricing: () => import('./pages/PricingPage.jsx'),
+  faq: () => import('./pages/FaqPage.jsx'),
+  kommunity: () => import('./pages/KommunityPage.jsx'),
+  terms: () => import('./pages/LegalPage.jsx'),
+  privacy: () => import('./pages/LegalPage.jsx'),
+  refunds: () => import('./pages/LegalPage.jsx'),
 };
 const PAGES = Object.fromEntries(Object.entries(LOAD).map(([k, f]) => [k, lazy(f)]));
 
@@ -96,7 +106,12 @@ function Layout() {
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <Layout />
+      <AuthProvider>
+        <Routes>
+          <Route path="/portal/*" element={<Suspense fallback={<div className="page-loading" aria-hidden="true" />}><PortalApp /><Toasts /></Suspense>} />
+          <Route path="*" element={<Layout />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

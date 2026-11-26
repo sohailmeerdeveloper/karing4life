@@ -1145,3 +1145,11 @@ p { margin: 0; }
 /* kicker pill reads in every theme */
 .hero-kicker .k-pill { background: var(--primary-bg); color: var(--on-primary); }
 
+
+/* ---------- Auth extras (sign-in errors, Google button, toast kinds) ---------- */
+.form-err { margin: 0; padding: 10px 14px; border-radius: var(--radius); background: #FBE9E5; color: #9E2F1C; font-size: 14px; font-weight: 600; border: 1px solid rgba(158, 47, 28, .18); }
+.google-btn { gap: 10px; background: var(--white); font-weight: 700; }
+.google-btn svg { flex: none; }
+.toast-error { background: #7E2A1C; }
+.toast-error .i { color: #FFD7CC; }
+.toast-info .i { color: var(--on-deep-3); }

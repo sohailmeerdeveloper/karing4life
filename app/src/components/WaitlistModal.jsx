@@ -1,12 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { LogoImg } from './bits.jsx';
-import { EMAIL_RE, joinWaitlist, markClosed, markJoined, shouldPrompt } from '../lib/waitlist.js';
+import { EMAIL_RE, joinWaitlist, markClosed, markJoined, shouldPrompt, hasJoined } from '../lib/waitlist.js';
+import { onPrelaunch } from '../lib/prelaunch.js';
+import { useLocation } from 'react-router-dom';
+
+const COPY = {
+  signup: ['Accounts open soon', 'We’re almost ready to ', 'welcome you.', 'Karing4Life is still under development, so new accounts aren’t open yet. Leave your email and we’ll tell you the moment you can join.'],
+  signin: ['Sign-in opens at launch', 'Member accounts open ', 'very soon.', 'Karing4Life is still under development, so sign-in isn’t available yet. Leave your email and we’ll let you know as soon as it’s ready.'],
+};
 import '../gate.css';
 
 /* Pre-launch popup shown over the site on arrival: asks for an email so we can tell the visitor
    when Karing4Life opens. Closing it first shows a short "are you sure" note, then lets them browse. */
 export default function WaitlistModal() {
-  const [open, setOpen] = useState(shouldPrompt);
+  const { pathname } = useLocation();
+  const [open, setOpen] = useState(() => !pathname.startsWith('/portal') && shouldPrompt());
+  const [reason, setReason] = useState(null);       // null = arrival popup; 'signup' | 'signin' = opened by a form
   const [step, setStep] = useState('form');      // form | confirm | done
   const [state, setState] = useState('idle');    // idle | sending | invalid | failed
   const [email, setEmail] = useState('');
@@ -14,12 +23,19 @@ export default function WaitlistModal() {
   const card = useRef(null);
   const input = useRef(null);
 
+  // forms (sign-up, sign-in, Google) open the popup on demand
+  useEffect(() => onPrelaunch(({ reason: r, email: em }) => {
+    setReason(r); setStep(hasJoined() ? 'joined' : 'form'); setState('idle'); setLeaving(false);
+    if (em) setEmail(em);
+    setOpen(true);
+  }), []);
+
   const close = () => {
-    if (step !== 'done') markClosed();
+    if (step !== 'done' && !reason) markClosed();
     setLeaving(true);
     setTimeout(() => setOpen(false), 220);
   };
-  const askClose = () => (step === 'form' ? setStep('confirm') : close());
+  const askClose = () => (step === 'form' && !reason ? setStep('confirm') : close());
 
   // lock page scroll, focus the field (desktop), keep Tab inside, Esc = close
   useEffect(() => {
@@ -79,10 +95,12 @@ export default function WaitlistModal() {
 
         {step === 'form' && (<>
           <LogoImg className="wl-logo" />
-          <p className="gate-eyebrow"><span className="dot" />Launching soon</p>
-          <h2 id="wl-title" className="wl-title">Be the first to know when we <span className="serif">open.</span></h2>
+          <p className="gate-eyebrow"><span className="dot" />{reason ? COPY[reason][0] : 'Launching soon'}</p>
+          {reason
+            ? <h2 id="wl-title" className="wl-title">{COPY[reason][1]}<span className="serif">{COPY[reason][2]}</span></h2>
+            : <h2 id="wl-title" className="wl-title">Be the first to know when we <span className="serif">open.</span></h2>}
           <p id="wl-sub" className="wl-sub">
-            Karing4Life is still under development. Leave your email and we'll let you know the moment it's ready.
+            {reason ? COPY[reason][3] : "Karing4Life is still under development. Leave your email and we'll let you know the moment it's ready."}
           </p>
           <form className={'cs-form' + (state === 'invalid' || state === 'failed' ? ' is-error' : '')} onSubmit={submit} noValidate>
             <label htmlFor="wl-email" className="sr-only">Email address</label>
@@ -109,6 +127,17 @@ export default function WaitlistModal() {
           <div className="wl-actions">
             <button type="button" className="wl-btn wl-primary" onClick={() => { setStep('form'); setState('idle'); }}>Enter my email</button>
             <button type="button" className="wl-btn wl-ghost" onClick={close}>Continue to site</button>
+          </div>
+        </>)}
+
+        {step === 'joined' && (<>
+          <div className="wl-icon ok" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+          </div>
+          <h2 id="wl-title" className="wl-title sm">{reason === 'signin' ? 'Sign-in opens at launch.' : 'Accounts open at launch.'}</h2>
+          <p id="wl-sub" className="wl-sub" role="status">Karing4Life is still under development. You're already on our list, so we'll email you the day it opens.</p>
+          <div className="wl-actions">
+            <button type="button" className="wl-btn wl-primary" onClick={close}>Got it</button>
           </div>
         </>)}
 

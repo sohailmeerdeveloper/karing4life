@@ -1,12 +1,14 @@
 import { LogoImg, Icon } from './bits.jsx';
 import { toast } from '../lib/toast.jsx';
+import { joinWaitlist, markJoined } from '../lib/waitlist.js';
 
 export function Footer() {
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     const i = e.currentTarget.elements.ftEmail;
-    if (!i.value || !i.checkValidity()) { i.focus(); toast('Enter a valid email'); return; }
-    toast('You’re on the list', 'Occasional updates only. Unsubscribe anytime.'); i.value = '';
+    if (!i.value || !i.checkValidity()) { i.focus(); toast.error('Enter a valid email'); return; }
+    try { await joinWaitlist(i.value); markJoined(); toast('You’re on the list', 'Occasional updates only. Unsubscribe anytime.'); i.value = ''; }
+    catch { toast.error('Couldn’t save that', 'Please check your connection and try again.'); }
   };
   return (
     <footer className="site-footer">
@@ -24,7 +26,7 @@ export function Footer() {
             <div className="footer-cols">
               <div className="footer-col">
                 <h4>Families</h4>
-                <ul><li><a href="/families">For families</a></li><li><a href="/join?role=family">Post a care request</a></li><li><a href="/how?aud=families">How it works</a></li></ul>
+                <ul><li><a href="/families">For families</a></li><li><a href="/join?role=family">Post a care request</a></li><li><a href="/how?aud=families">How it works</a></li><li><a href="/kommunity">Kommunity Korner</a></li></ul>
               </div>
               <div className="footer-col">
                 <h4>Caregivers</h4>
@@ -43,6 +45,8 @@ export function Footer() {
                 <h4>Company</h4>
                 <ul>
                   <li><a href="/about">About</a></li>
+                  <li><a href="/pricing">Pricing</a></li>
+                  <li><a href="/faq">FAQ</a></li>
                   <li><a href="/contact">Contact</a></li>
                   <li><a href="/signin">Sign in</a></li>
                   <li><a href="/join">Join Karing4Life</a></li>
@@ -67,7 +71,7 @@ export function Footer() {
         <div className="container">
           <div className="fb-row">
             <span>© 2026 Karing4Life. All rights reserved.</span>
-            <div className="fb-links"><a href="/about">Terms of Service</a><a href="/about">Privacy Policy</a><a href="mailto:info@karing4life.com">info@karing4life.com</a></div>
+            <div className="fb-links"><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/refunds">Refund Policy</a><a href="mailto:info@karing4life.com">info@karing4life.com</a></div>
           </div>
         </div>
       </div>

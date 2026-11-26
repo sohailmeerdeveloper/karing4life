@@ -1,34 +1,65 @@
-import { useRef, useState } from 'react';
-import { useTitle } from '../lib/hooks.js';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery, useTitle } from '../lib/hooks.js';
 import { LogoImg } from '../components/bits.jsx';
 import { PwToggle } from '../components/PwToggle.jsx';
 import { toast } from '../lib/toast.jsx';
+import { supabase, errText } from '../lib/supabase.js';
+import { useAuth } from '../lib/auth.jsx';
+import { PRELAUNCH } from '../lib/config.js';
+import { openPrelaunch } from '../lib/prelaunch.js';
+import { GoogleButton } from '../components/GoogleButton.jsx';
 
 export default function SigninPage() {
   useTitle('Sign in · Karing4Life');
+  const { next } = useQuery();
+  const navigate = useNavigate();
+  const { user, ready } = useAuth();
   const [forgot, setForgot] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
   const fpRef = useRef(null);
-  const onSubmit = (e) => {
+  const dest = next && next.startsWith('/portal') ? next : '/portal';
+
+  useEffect(() => { if (ready && user) navigate(dest, { replace: true }); }, [ready, user, dest, navigate]);
+
+  const onSubmit = async (e) => {
     e.preventDefault();
     const em = e.currentTarget.elements.sEmail, pw = e.currentTarget.elements.sPw;
-    if (!em.value || !pw.value) { (em.value ? pw : em).focus(); toast('Enter your email and password'); return; }
-    toast('Signing in…', 'Account sign-in will be available at launch.');
+    setErr('');
+    if (!em.value.trim() || !pw.value) { (em.value ? pw : em).focus(); setErr('Enter your email and password.'); return; }
+    setBusy(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email: em.value.trim(), password: pw.value });
+    if (error) {
+      setBusy(false);
+      if (PRELAUNCH) { openPrelaunch('signin', em.value.trim()); return; }
+      setErr(errText(error)); return;
+    }
+    const { data: p } = await supabase.from('profiles').select('status').eq('id', data.user.id).maybeSingle();
+    if (p?.status === 'suspended') {
+      await supabase.auth.signOut(); setBusy(false);
+      setErr('This account is suspended. Contact us if you think this is a mistake.'); return;
+    }
+    toast('Welcome back');
+    navigate(dest, { replace: true });
   };
-  const sendReset = () => {
+  const sendReset = async () => {
     const v = fpRef.current;
-    if (!v.value || !v.checkValidity()) { v.focus(); toast('Enter your email', 'We’ll send the reset link there.'); return; }
-    toast('Reset link requested', 'Check your inbox for a link to reset your password.'); setForgot(false);
+    if (!v.value || !v.checkValidity()) { v.focus(); toast.error('Enter your email', 'We’ll send the reset link there.'); return; }
+    await supabase.auth.resetPasswordForEmail(v.value.trim(), { redirectTo: window.location.origin + '/reset-password' });
+    toast('Check your inbox', 'If that email has an account, a reset link is on its way.'); setForgot(false);
   };
   return (
-    <>
     <section className="auth-wrap screen">
       <div className="container">
         <div className="signin-card">
           <div className="sc-logo"><LogoImg alt="Karing4Life logo" width="72" height="72" /></div>
           <h1>Welcome back</h1>
           <p className="sc-sub">Sign in to your Karing4Life account.</p>
-          <form id="signinForm" onSubmit={onSubmit} style={{ marginTop: '24px', display: 'grid', gap: '16px' }} noValidate>
-            <div className="field"><label htmlFor="sEmail">Username or email</label><input className="input" id="sEmail" autoComplete="username" required /></div>
+          <GoogleButton style={{ marginTop: 24 }} />
+          <div className="sc-divider">or with email</div>
+          <form id="signinForm" onSubmit={onSubmit} style={{ display: 'grid', gap: '16px' }} noValidate>
+            <div className="field"><label htmlFor="sEmail">Email</label><input className="input" id="sEmail" type="email" inputMode="email" autoComplete="username" required /></div>
             <div className="field">
               <label htmlFor="sPw">Password</label>
               <div className="pw-wrap">
@@ -37,7 +68,7 @@ export default function SigninPage() {
               </div>
             </div>
             <div className="sc-row">
-              <label className="check" style={{ fontSize: '14px' }}><input type="checkbox" />Keep me signed in</label>
+              <label className="check" style={{ fontSize: '14px' }}><input type="checkbox" defaultChecked />Keep me signed in</label>
               <button type="button" className="link-btn" id="forgotLink" aria-expanded={forgot} aria-controls="forgotPanel" onClick={() => { setForgot(!forgot); if (!forgot) setTimeout(() => fpRef.current?.focus(), 50); }}>Forgot password?</button>
             </div>
             <div className={'forgot-panel' + (forgot ? ' open' : '')} id="forgotPanel">
@@ -48,13 +79,13 @@ export default function SigninPage() {
                 <button className="btn btn-primary btn-sm" type="button" id="fpSend" onClick={sendReset} style={{ '--bh': '44px' }}>Send link</button>
               </div>
             </div>
-            <button className="btn btn-primary btn-block btn-lg" type="submit">Sign in</button>
+            {err && <p className="form-err" role="alert">{err}</p>}
+            <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
           </form>
           <div className="sc-divider">New to Karing4Life?</div>
           <a className="btn btn-ghost btn-block" href="/join">Create a free account</a>
         </div>
       </div>
     </section>
-    </>
   );
 }

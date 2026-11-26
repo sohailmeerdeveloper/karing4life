@@ -29,6 +29,7 @@ const CLOSED = 'k4l-popup-closed';
 const get = (s, k) => { try { return s.getItem(k); } catch { return null; } };
 const set = (s, k) => { try { s.setItem(k, '1'); } catch { /* storage blocked */ } };
 
+export const hasJoined = () => !!get(localStorage, JOINED);
 export const shouldPrompt = () => !get(localStorage, JOINED) && !get(sessionStorage, CLOSED);
 export const markJoined = () => set(localStorage, JOINED);
 export const markClosed = () => set(sessionStorage, CLOSED);
