@@ -1153,3 +1153,14 @@ p { margin: 0; }
 .toast-error { background: #7E2A1C; }
 .toast-error .i { color: #FFD7CC; }
 .toast-info .i { color: var(--on-deep-3); }
+
+/* ---------- Themed scrollbars: thin olive thumb, no white track ---------- */
+html { scrollbar-width: thin; scrollbar-color: rgba(var(--olive-rgb), .38) transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(var(--olive-rgb), .32) transparent; }
+*:hover { scrollbar-color: rgba(var(--olive-rgb), .5) transparent; }
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(var(--olive-rgb), .32); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--olive-rgb), .55); }
+}

@@ -53,7 +53,7 @@ export default function Regions() {
         : <Notice tone="warn" icon="lock" action={<Btn size="sm" variant="accent" onClick={() => setCheckout(true)} disabled={!toBuy.length}>Unlock</Btn>}><strong>Your free trial has ended.</strong> Subscribe to see posts in regions without the green “Active” mark.</Notice>)}
 
       <Card style={{ marginTop: 16 }}>
-        {loading ? <div className="skel" style={{ height: 360 }} /> : <RegionPicker value={sel} onChange={setSel} status={status} note="Tip: zoom in to pick the five boroughs, Nassau and Suffolk." />}
+        {loading ? <div className="skel" style={{ height: 360 }} /> : <RegionPicker value={sel} onChange={setSel} status={status} note="Tip: search your address to add your region, or tap “NYC & Long Island” to pick the boroughs." />}
       </Card>
 
       <div className="grid-2" style={{ marginTop: 20 }}>

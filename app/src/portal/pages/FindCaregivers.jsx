@@ -4,7 +4,7 @@ import { supabase, q, errText } from '../../lib/supabase.js';
 import { useAsync } from '../../lib/useAsync.js';
 import { toast } from '../../lib/toast.jsx';
 import { usePortal } from '../context.jsx';
-import { Avail, Avatar, Btn, Card, CareTags, Chips, Empty, IconBtn, Modal, PageHead, PIcon, SchedulePicker, Skel, Switch, Verified, regionName, schedSummary } from '../ui.jsx';
+import { Avail, Avatar, Btn, Card, CareTags, CheckList, Empty, IconBtn, Modal, PageHead, PIcon, SchedulePicker, Section, Switch, Verified, careLabel, regionName, schedSummary } from '../ui.jsx';
 import { SKILLED, NONSKILLED, RECIPIENTS, DURATIONS } from '../caregiver.jsx';
 import { REGIONS, GROUPS } from '../../data/data.js';
 import StartChat from '../StartChat.jsx';
@@ -16,26 +16,63 @@ export async function toggleSave(me, cgId, on) {
   if (r.error && r.error.code !== '23505') throw r.error;
 }
 
+const SLOT_N = (sched) => Object.values(sched || {}).reduce((n, d) => n + d.length, 0);
+
 function Filters({ f, set, reset, count }) {
   return (
-    <div className="filters">
-      <div className="f-h"><h4><PIcon name="sliders" className="pi-sm" />Filters{count > 0 && <span className="pbadge">{count}</span>}</h4>{count > 0 && <button className="pb pb-link pb-sm" onClick={reset}>Clear all</button>}</div>
-      <div><div className="chip-group-label">Skilled care</div><Chips options={SKILLED} value={f.care} onChange={(x) => set({ care: x })} /></div>
-      <div><div className="chip-group-label">Non-skilled care</div><Chips options={NONSKILLED} value={f.care} onChange={(x) => set({ care: x })} /></div>
-      <div>
-        <div className="chip-group-label">Service regions</div>
+    <div className="pfilters">
+      <div className="f-h">
+        <h4><PIcon name="sliders" className="pi-sm" />Filters{count > 0 && <span className="fsec-n">{count}</span>}</h4>
+        {count > 0 && <button type="button" className="pb pb-link pb-sm" onClick={reset}>Clear all</button>}
+      </div>
+      <Section title="Type of care" icon="steth" count={f.care.length} defaultOpen onClear={() => set({ care: [] })}>
+        <div className="fsub">Skilled care</div>
+        <CheckList options={SKILLED} value={f.care} onChange={(x) => set({ care: x })} />
+        <div className="fsub">Non-skilled care</div>
+        <CheckList options={NONSKILLED} value={f.care} onChange={(x) => set({ care: x })} />
+      </Section>
+      <Section title="Service regions" icon="pin" count={f.regions.length} defaultOpen={f.regions.length > 0} onClear={() => set({ regions: [] })}>
         {['li', 'nyc', 'up'].map((g) => (
-          <div key={g} style={{ marginBottom: 8 }}>
-            <div className="small muted" style={{ fontWeight: 700, marginBottom: 6 }}>{GROUPS[g]}</div>
-            <Chips options={REGIONS.filter((r) => r.g === g).map((r) => [r.key, r.name])} value={f.regions} onChange={(x) => set({ regions: x })} />
+          <div key={g}>
+            <div className="fsub">{GROUPS[g]}</div>
+            <CheckList cols={2} options={REGIONS.filter((r) => r.g === g).map((r) => [r.key, r.name])} value={f.regions} onChange={(x) => set({ regions: x })} />
           </div>
         ))}
-      </div>
-      <div><div className="chip-group-label">Schedule needed</div><SchedulePicker value={f.schedule} onChange={(s) => set({ schedule: s })} /></div>
-      <div><div className="chip-group-label">Care recipient</div><Chips multi={false} options={RECIPIENTS} value={f.recipient} onChange={(x) => set({ recipient: x })} /></div>
-      <div><div className="chip-group-label">Duration</div><Chips multi={false} options={DURATIONS} value={f.duration} onChange={(x) => set({ duration: x })} /></div>
-      <div><div className="chip-group-label">Status</div><Chips multi={false} options={[['available', 'Available'], ['fillin', 'Fill-in']]} value={f.availability} onChange={(x) => set({ availability: x })} /></div>
-      <Switch checked={f.verified} onChange={(v) => set({ verified: v })} label="Verified only" />
+      </Section>
+      <Section title="Schedule needed" icon="cal" count={SLOT_N(f.schedule)} onClear={() => set({ schedule: {} })}>
+        <p className="fhint">Pick a time of day, then the days.</p>
+        <SchedulePicker value={f.schedule} onChange={(sc) => set({ schedule: sc })} />
+      </Section>
+      <Section title="Care recipient" icon="user" count={f.recipient ? 1 : 0} defaultOpen>
+        <CheckList multi={false} name="recipient" cols={2} options={RECIPIENTS} value={f.recipient} onChange={(x) => set({ recipient: x })} />
+      </Section>
+      <Section title="Duration" icon="hourglass" count={f.duration ? 1 : 0}>
+        <CheckList multi={false} name="duration" options={[['Fill-in', 'Fill-in', 'A shift or a few days'], ['Short-term', 'Short-term', 'Up to a few months'], ['Long-term', 'Long-term', 'Ongoing']]} value={f.duration} onChange={(x) => set({ duration: x })} />
+      </Section>
+      <Section title="Availability" icon="clock" count={(f.availability ? 1 : 0) + (f.verified ? 1 : 0)} defaultOpen>
+        <CheckList multi={false} name="avail" cols={2} options={[['available', 'Available'], ['fillin', 'Fill-in']]} value={f.availability} onChange={(x) => set({ availability: x })} />
+        <div style={{ marginTop: 12 }}><Switch checked={f.verified} onChange={(v) => set({ verified: v })} label="Verified caregivers only" /></div>
+      </Section>
+    </div>
+  );
+}
+
+/** The filters that are on, each removable with one click. */
+function ActiveFilters({ f, set, reset }) {
+  const chips = [
+    ...f.care.map((k) => [careLabel(k), () => set({ care: f.care.filter((x) => x !== k) })]),
+    ...f.regions.map((k) => [regionName(k), () => set({ regions: f.regions.filter((x) => x !== k) })]),
+    ...(SLOT_N(f.schedule) ? [[schedSummary(f.schedule), () => set({ schedule: {} })]] : []),
+    ...(f.recipient ? [[f.recipient, () => set({ recipient: '' })]] : []),
+    ...(f.duration ? [[f.duration, () => set({ duration: '' })]] : []),
+    ...(f.availability ? [[f.availability === 'fillin' ? 'Fill-in' : 'Available', () => set({ availability: '' })]] : []),
+    ...(f.verified ? [['Verified only', () => set({ verified: false })]] : []),
+  ];
+  if (!chips.length) return null;
+  return (
+    <div className="active-f">
+      {chips.map(([l, off]) => <button key={l} type="button" className="af-chip" onClick={off} aria-label={'Remove filter ' + l}>{l}<PIcon name="x" className="pi-sm" /></button>)}
+      <button type="button" className="pb pb-link pb-sm" onClick={reset}>Clear all</button>
     </div>
   );
 }
@@ -104,16 +141,17 @@ export default function FindCaregivers({ saved }) {
         {!saved && <Btn variant={count ? 'soft' : 'ghost'} icon="sliders" className="only-m" onClick={() => setMobileFilters(true)}>Filters{count ? ` (${count})` : ''}</Btn>}
       </div>
       <div className={saved ? '' : 'filters-layout'}>
-        {!saved && <Card className="hide-m">{filters}</Card>}
+        {!saved && <Card className="hide-m filter-card">{filters}</Card>}
         <div>
-          <div className="flex between" style={{ marginBottom: 12 }}><span className="small muted"><strong style={{ color: 'var(--ink)' }}>{loading ? '…' : list.length}</strong> caregiver{list.length === 1 ? '' : 's'}{count ? ' match your filters' : ''}</span></div>
+          <div className="results-h"><span className="small muted"><strong style={{ color: 'var(--ink)' }}>{loading ? '…' : list.length}</strong> caregiver{list.length === 1 ? '' : 's'}{count ? ' match your filters' : ''}</span></div>
+          {!saved && <ActiveFilters f={f} set={set} reset={() => setF({ ...EMPTY, q: f.q })} />}
           {loading && !data ? <div className="cg-grid">{[1, 2, 3, 4].map((i) => <div key={i} className="skel" style={{ height: 280 }} />)}</div>
             : error ? <Card><Empty icon="alert" title="Search isn’t available" body={errText(error)} /></Card>
             : list.length === 0 ? <Card><Empty icon={saved ? 'bookmark' : 'search'} title={saved ? 'No saved caregivers yet' : 'No caregivers match'} body={saved ? 'Tap the bookmark on any caregiver to keep them here.' : 'Try removing a filter or two. New caregivers join every week.'} action={saved ? <Btn variant="primary" icon="search" to={base + '/find'}>Find caregivers</Btn> : count > 0 && <Btn variant="ghost" onClick={() => setF({ ...EMPTY })}>Clear filters</Btn>} /></Card>
             : <div className="cg-grid" style={{ opacity: loading ? .6 : 1, transition: 'opacity .2s' }}>{list.map((c) => <CaregiverCard key={c.user_id} c={c} base={base} onSave={onSave} onMessage={setChat} />)}</div>}
         </div>
       </div>
-      <Modal open={mobileFilters} onClose={() => setMobileFilters(false)} title="Filters" icon="sliders" footer={<Btn variant="primary" block onClick={() => setMobileFilters(false)}>Show {list.length} caregiver{list.length === 1 ? '' : 's'}</Btn>}>{filters}</Modal>
+      <Modal open={mobileFilters} onClose={() => setMobileFilters(false)} title="Filters" icon="sliders" footer={<><Btn variant="ghost" onClick={() => setF({ ...EMPTY, q: f.q })} disabled={!count}>Clear all</Btn><Btn variant="primary" onClick={() => setMobileFilters(false)}>Show {list.length} caregiver{list.length === 1 ? '' : 's'}</Btn></>}>{filters}</Modal>
       <StartChat open={!!chat} onClose={() => setChat(null)} other={chat && { id: chat.user_id, name: chat.full_name, avatar: chat.avatar_url, sub: chat.credential }} />
     </>
   );

@@ -1,6 +1,6 @@
 /* Navigation per portal. [path, label, icon, tip]. First 4 marked `tab` show in the phone tab bar. */
 export const ROLE_META = {
-  caregiver: { label: 'Caregiver', title: 'Nurse & caregiver portal', icon: 'steth' },
+  caregiver: { label: 'Caregiver', title: 'Caregiver portal', icon: 'steth' },
   family: { label: 'Family', title: 'Family portal', icon: 'heart' },
   agency: { label: 'Agency', title: 'Agency portal', icon: 'building' },
   admin: { label: 'Admin', title: 'Admin console', icon: 'shield' },

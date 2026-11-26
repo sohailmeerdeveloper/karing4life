@@ -139,10 +139,12 @@ export default function PortalLayout() {
   const main = useRef(null);
   const nav = NAV[role];
   const sub = pathname.slice(base.length).replace(/^\//, '');
+  const section = sub.split('/').slice(0, sub.startsWith('messages') ? 1 : 2).join('/');
   const current = [...nav, ...FOOT].find((n) => (n.to === '' ? sub === '' : sub === n.to || sub.startsWith(n.to + '/')));
 
   useEffect(() => { setMore(false); window.scrollTo({ top: 0 }); }, [pathname]);
-  useEffect(() => { document.title = (current?.label || 'Portal') + ' · Karing4Life'; }, [current]);
+  const label = current?.label || (sub.startsWith('onboarding') ? 'Set up your profile' : '');
+  useEffect(() => { document.title = (label || 'Portal') + ' · Karing4Life'; }, [label]);
   useEffect(() => { if (!hasSeenGuide(role)) setTimeout(() => setGuide(true), 600); }, [role]);
 
   const out = async () => { await signOut(); navigate('/'); };
@@ -170,7 +172,7 @@ export default function PortalLayout() {
       <div className="portal-main">
         <header className="p-top">
           <a className="p-brand-m" href="/" aria-label="Karing4Life website"><img src="/logo-olive.webp" alt="" /><span>Karing<b style={{ color: 'var(--rust-ink)' }}>4</b>Life</span></a>
-          <div className="p-top-title"><span>{ROLE_META[role].title}</span><PIcon name="chevR" className="pi-sm" /><span className="crumb">{current?.label || ''}</span></div>
+          <div className="p-top-title"><span>{ROLE_META[role].title}</span><PIcon name="chevR" className="pi-sm" /><span className="crumb">{label}</span></div>
           <div className="p-top-actions">
             <IconBtn icon="help" label="Quick guide" onClick={() => setGuide(true)} tipPos="bottom" />
             <Bell />
@@ -178,7 +180,7 @@ export default function PortalLayout() {
           </div>
         </header>
         <main id="main" ref={main} className="p-content" tabIndex={-1}>
-          <ErrorBoundary resetKey={pathname}><Suspense fallback={<Skel h={120} />}><Outlet /></Suspense></ErrorBoundary>
+          <ErrorBoundary resetKey={pathname}><Suspense fallback={<Skel h={120} />}><div key={section} className="page-in"><Outlet /></div></Suspense></ErrorBoundary>
         </main>
       </div>
 

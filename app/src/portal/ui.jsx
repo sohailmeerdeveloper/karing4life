@@ -1,10 +1,25 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { PIcon, TrashIcon } from './icons.jsx';
 import { DAYS, DAY_FULL, CARE_BY, R } from '../data/data.js';
 
 export { PIcon };
+
+/* Where the last click/tap happened, so panels can open from that spot (keeps the eye on it). */
+export const lastPointer = { x: null, y: null, t: 0 };
+if (typeof window !== 'undefined') {
+  window.addEventListener('pointerdown', (e) => { lastPointer.x = e.clientX; lastPointer.y = e.clientY; lastPointer.t = Date.now(); }, true);
+}
+/** Sets transform-origin of el to the last click (if recent) and plays the "grow" animation. */
+export function growFromClick(el, cls = 'grow-in') {
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  if (lastPointer.x != null && Date.now() - lastPointer.t < 1500) {
+    el.style.transformOrigin = `${Math.round(lastPointer.x - r.left)}px ${Math.round(lastPointer.y - r.top)}px`;
+  }
+  el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+}
 
 /* ---------------- formatting ---------------- */
 export const money = (cents) => '$' + (cents / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -270,6 +285,7 @@ export function CareTags({ keys = [], max = 99 }) {
 /* ---------------- modal + confirm ---------------- */
 export function Modal({ open, onClose, title, icon, children, footer, size }) {
   const ref = useRef(null);
+  useLayoutEffect(() => { if (open && window.innerWidth > 640) growFromClick(ref.current); }, [open]);
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement;
@@ -340,6 +356,45 @@ export function FileDrop({ accept, onFile, label = 'Upload a file', sub = 'PNG, 
       <strong>{busy ? 'Uploading…' : label}</strong>
       <span className="small">{sub}</span>
       <input ref={input} type="file" accept={accept} hidden onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} />
+    </div>
+  );
+}
+
+/* ---------------- checkbox list + collapsible section ---------------- */
+/** Checkbox rows (multi) or radio rows (single). options: [[value, label, hint?]] */
+export function CheckList({ options, value, onChange, multi = true, cols = 1, name }) {
+  const on = (k) => (multi ? (value || []).includes(k) : value === k);
+  const flip = (k) => {
+    if (multi) onChange(on(k) ? value.filter((x) => x !== k) : [...(value || []), k]);
+    else onChange(on(k) ? '' : k);
+  };
+  return (
+    <div className={'ckl' + (cols > 1 ? ' cols-' + cols : '')} role="group">
+      {options.map(([k, l, hint]) => (
+        <label key={k} className={'ckl-row' + (on(k) ? ' on' : '')}>
+          <input type={multi ? 'checkbox' : 'radio'} name={name} checked={on(k)} onChange={() => flip(k)} onClick={(e) => { if (!multi && on(k)) { e.preventDefault(); flip(k); } }} />
+          <span className={'ckl-box' + (multi ? '' : ' round')} aria-hidden="true"><PIcon name="check" /></span>
+          <span className="ckl-t">{l}{hint && <small>{hint}</small>}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/** Collapsible filter/form section with a smooth height animation. */
+export function Section({ title, icon, count, defaultOpen = false, children, onClear }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={'fsec' + (open ? ' open' : '')}>
+      <button type="button" className="fsec-h" aria-expanded={open} onClick={() => setOpen(!open)}>
+        {icon && <PIcon name={icon} className="pi-sm" />}<span className="fsec-t">{title}</span>
+        {count > 0 && <span className="fsec-n">{count}</span>}
+        <PIcon name="chevD" className="pi-sm fsec-chev" />
+      </button>
+      <div className="fsec-b"><div className="fsec-in">
+        {children}
+        {onClear && count > 0 && <button type="button" className="fsec-clear" onClick={onClear}>Clear</button>}
+      </div></div>
     </div>
   );
 }

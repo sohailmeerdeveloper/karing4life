@@ -108,7 +108,7 @@ export default function App() {
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <Routes>
-          <Route path="/portal/*" element={<Suspense fallback={<div className="page-loading" aria-hidden="true" />}><PortalApp /><Toasts /></Suspense>} />
+          <Route path="/portal/*" element={<><Sprite /><Suspense fallback={<div className="page-loading" aria-hidden="true" />}><PortalApp /></Suspense><Toasts /></>} />
           <Route path="*" element={<Layout />} />
         </Routes>
       </AuthProvider>

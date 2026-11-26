@@ -1,0 +1,18 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-78.6997,42.2365]},"properties":{"name":"Chautauqua-Allegheny","grp":"up","key":"chautauqua-allegheny"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-75.0443,44.4955]},"properties":{"name":"Thousand Islands","grp":"up","key":"thousand-islands"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-73.5723,40.7194]},"properties":{"name":"Nassau","grp":"li","key":"nassau"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-73.9359,41.6729]},"properties":{"name":"Hudson Valley","grp":"up","key":"hudson-valley"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-76.9397,42.6387]},"properties":{"name":"Finger Lakes","grp":"up","key":"finger-lakes"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-75.0333,42.111]},"properties":{"name":"Catskills","grp":"up","key":"catskills"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-73.058,40.8159]},"properties":{"name":"Suffolk","grp":"li","key":"suffolk"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-73.9403,40.6426]},"properties":{"name":"Brooklyn","grp":"nyc","key":"brooklyn"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-75.3068,42.9257]},"properties":{"name":"Central New York","grp":"up","key":"central-new-york"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-73.9653,40.7797]},"properties":{"name":"Manhattan","grp":"nyc","key":"manhattan"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-73.7977,40.7059]},"properties":{"name":"Queens","grp":"nyc","key":"queens"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-73.6578,42.8536]},"properties":{"name":"Capital Region","grp":"up","key":"capital-region"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-74.0095,44.0493]},"properties":{"name":"Adirondacks","grp":"up","key":"adirondacks"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-78.4353,42.946]},"properties":{"name":"Niagara","grp":"up","key":"niagara"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-74.1516,40.5896]},"properties":{"name":"Staten Island","grp":"nyc","key":"staten-island"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-73.8671,40.8482]},"properties":{"name":"Bronx","grp":"nyc","key":"bronx"}}
+]}

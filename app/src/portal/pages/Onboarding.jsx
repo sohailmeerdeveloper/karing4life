@@ -9,6 +9,8 @@ import { RegionOptions } from '../../components/bits.jsx';
 import { AboutFields, CareFields, ScheduleFields } from '../caregiver.jsx';
 import { CompanyFields, validateCompany } from './Company.jsx';
 import RegionPicker from '../RegionPicker.jsx';
+import RegionMap from '../../components/RegionMap.jsx';
+import { R } from '../../data/data.js';
 import { pick } from './CaregiverProfile.jsx';
 
 const STEPS = {
@@ -26,6 +28,8 @@ export default function Onboarding() {
   const [cg, setCg] = useState(extra.caregiver || {});
   const [fam, setFam] = useState({ ...(extra.family || {}), town: profile?.town || '', region_key: profile?.region_key || '' });
   const [ag, setAg] = useState(extra.agency || {});
+  const [home, setHome] = useState(null);   // caregiver/agency: town + region found from an address search
+  const fromAddress = (a) => setHome({ town: a.town, region: a.region });
   const steps = STEPS[role];
   const last = i === steps.length - 1;
 
@@ -58,6 +62,7 @@ export default function Onboarding() {
       const { error } = await supabase.from('agency_profiles').update(patch).eq('user_id', me);
       if (error) throw error;
     }
+    if (home && role !== 'family') await supabase.from('profiles').update({ town: home.town || null, region_key: home.region || null }).eq('id', me);
     if (finish) await supabase.from('profiles').update({ onboarded: true }).eq('id', me);
   };
 
@@ -89,7 +94,7 @@ export default function Onboarding() {
           {i === 0 && <AboutFields v={cg} set={(p) => setCg((x) => ({ ...x, ...p }))} />}
           {i === 1 && <CareFields v={cg} set={(p) => setCg((x) => ({ ...x, ...p }))} />}
           {i === 2 && <><p className="muted small" style={{ marginBottom: 14 }}>When can you work? Tap a time of day, then pick the days.</p><ScheduleFields v={cg} set={(p) => setCg((x) => ({ ...x, ...p }))} /></>}
-          {i === 3 && <><Notice tone="ok" icon="sparkle">Every region you pick is <strong>free for 14 days</strong>. After that it’s $8.99 a month per region, and you choose which to keep.</Notice><div style={{ marginTop: 16 }}><RegionPicker value={cg.service_regions || []} onChange={(r) => setCg((x) => ({ ...x, service_regions: r }))} /></div></>}
+          {i === 3 && <><Notice tone="ok" icon="sparkle">Every region you pick is <strong>free for 14 days</strong>. After that it’s $8.99 a month per region, and you choose which to keep.</Notice><div style={{ marginTop: 16 }}><RegionPicker value={cg.service_regions || []} onChange={(r) => setCg((x) => ({ ...x, service_regions: r }))} onAddress={fromAddress} note="Tip: search your home address and we’ll add your region for you." /></div></>}
           {i === 4 && (
             <div className="stack-sm">
               <p className="muted">Verified caregivers get a badge and appear first in family searches. Upload a government ID (or library card) and {/RN|LPN|CNA|HHA|Therap/.test(cg.credential || '') ? 'a copy of your license' : '2–3 references'}.</p>
@@ -100,6 +105,13 @@ export default function Onboarding() {
         {role === 'family' && (<>
           {i === 0 && (
             <div className="pf">
+              <p className="muted small">Search the address where care is needed and we’ll find your region. It stays private and is never shown to anyone.</p>
+              <div className="onb-map">
+                <RegionMap mode="single" search value={fam.region_key || null} flyOnSelect
+                  onChange={(k) => setFam((f) => ({ ...f, region_key: k || '' }))}
+                  onAddress={(a) => setFam((f) => ({ ...f, address: a.line1 || f.address, town: a.town || f.town, zip: (a.zip || '').slice(0, 5) || f.zip, region_key: a.region || f.region_key }))} />
+              </div>
+              {fam.region_key && <Notice tone="ok" icon="map">Region: <strong>{R[fam.region_key]?.name}</strong>. Not right? Click another region on the map or change it below.</Notice>}
               <Field label="Street address" optional hint="Private. Never shown to anyone. Only used to place your requests in the right region.">{(id) => <input id={id} className="pin" maxLength={200} autoComplete="street-address" value={fam.address || ''} onChange={(e) => setFam({ ...fam, address: e.target.value })} />}</Field>
               <div className="pf-row n3">
                 <Field label="Town or city">{(id) => <input id={id} className="pin" maxLength={80} autoComplete="address-level2" value={fam.town || ''} onChange={(e) => setFam({ ...fam, town: e.target.value })} />}</Field>
@@ -123,7 +135,10 @@ export default function Onboarding() {
         </>)}
         {role === 'agency' && (<>
           {i === 0 && <CompanyFields v={ag} set={(p) => setAg((x) => ({ ...x, ...p }))} />}
-          {i === 1 && <div className="stack-sm"><p className="muted">Agency Access is $49.99 a month per region. It unlocks unlimited job posts, caregiver search and messaging there.</p><div><Btn variant="primary" icon="map" to={base + '/regions'}>Choose regions</Btn></div><p className="small muted">You can also do this later.</p></div>}
+          {i === 1 && <div className="stack-sm"><p className="muted">Search your office address to set your home region, then choose the regions you recruit in. Agency Access is $49.99 a month per region.</p>
+            <div className="onb-map"><RegionMap mode="single" search value={home?.region || null} onChange={(k) => setHome((h) => ({ ...h, region: k }))} onAddress={fromAddress} /></div>
+            {home?.region && <Notice tone="ok" icon="map">Home region: <strong>{R[home.region]?.name}</strong>{home.town ? ` (${home.town})` : ''}.</Notice>}
+            <div><Btn variant="ghost" icon="map" to={base + '/regions'}>Choose the regions you recruit in</Btn></div></div>}
           {i === 2 && <div className="stack-sm"><p className="muted">Upload an EIN letter or business registration and the contact’s ID. Our team reviews each agency by hand.</p><div><Btn variant="primary" icon="shieldCheck" to={base + '/verification'}>Upload documents</Btn></div></div>}
         </>)}
         <div className="pf-actions" style={{ marginTop: 24 }}>
