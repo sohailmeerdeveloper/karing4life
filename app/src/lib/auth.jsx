@@ -2,6 +2,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { supabase } from './supabase.js';
 
 const Ctx = createContext(null);
+/* Set on an explicit sign-out so the portal guard sends the member home instead of to
+   /signin?next=<their last page> (the next person on the device shouldn't land there). */
+let signedOutAt = 0;
+export const justSignedOut = () => Date.now() - signedOutAt < 10000;
+
 export const ROLE_ORDER = ['family', 'caregiver', 'agency', 'admin'];
 
 /** Session + the member's profile rows. `ready` turns true once we know if someone is signed in. */
@@ -46,7 +51,7 @@ export function AuthProvider({ children }) {
     ready, session, user: session?.user || null, profile, extra,
     roles: profile ? ROLE_ORDER.filter((r) => profile.roles.includes(r)) : [],
     refresh: () => load(session),
-    signOut: async () => { await supabase.auth.signOut(); setProfile(null); setExtra({}); },
+    signOut: async () => { signedOutAt = Date.now(); await supabase.auth.signOut(); setProfile(null); setExtra({}); },
   }), [ready, session, profile, extra, load]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

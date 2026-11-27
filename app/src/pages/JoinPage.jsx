@@ -9,6 +9,7 @@ import { supabase, errText } from '../lib/supabase.js';
 import { PRELAUNCH } from '../lib/config.js';
 import { openPrelaunch } from '../lib/prelaunch.js';
 import { GoogleButton } from '../components/GoogleButton.jsx';
+import { useAuth } from '../lib/auth.jsx';
 
 const NEXT = { family: 'Next you’ll write your first care request.', caregiver: 'Next you’ll upload your license or ID for review.', agency: 'Next we’ll review your EIN, website and contact.' };
 
@@ -20,6 +21,8 @@ export default function JoinPage() {
   const formRef = useRef(null);
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const { user, ready } = useAuth();
+  useEffect(() => { if (ready && user) navigate('/portal', { replace: true }); }, [ready, user, navigate]);
   useEffect(() => { if (ROLE_COPY[params.role]) setRole(params.role); setFormKey((k) => k + 1); }, [params.role, params.region, params.care]);
   const region = R[params.region] ? params.region : '';
   const care = CARE_BY[params.care] ? params.care : '';

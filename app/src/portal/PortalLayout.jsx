@@ -146,6 +146,19 @@ export default function PortalLayout() {
   const label = current?.label || (sub.startsWith('onboarding') ? 'Set up your profile' : '');
   useEffect(() => { document.title = (label || 'Portal') + ' · Karing4Life'; }, [label]);
   useEffect(() => { if (!hasSeenGuide(role)) setTimeout(() => setGuide(true), 600); }, [role]);
+  // keep tooltips on screen: anchor them to the element's edge when it sits near a screen edge
+  useEffect(() => {
+    const on = (e) => {
+      const el = e.target.closest?.('[data-tip]');
+      if (!el) return;
+      const r = el.getBoundingClientRect(), room = el.hasAttribute('data-tip-wide') ? 140 : 100;
+      const edge = r.right > window.innerWidth - room ? 'right' : r.left < room ? 'left' : null;
+      if (edge) el.setAttribute('data-tip-edge', edge); else el.removeAttribute('data-tip-edge');
+    };
+    document.addEventListener('pointerover', on);
+    document.addEventListener('focusin', on);
+    return () => { document.removeEventListener('pointerover', on); document.removeEventListener('focusin', on); };
+  }, []);
 
   const out = async () => { await signOut(); navigate('/'); };
   const link = (n) => (

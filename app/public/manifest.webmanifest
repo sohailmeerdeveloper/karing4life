@@ -1,0 +1,13 @@
+{
+  "name": "Karing4Life",
+  "short_name": "Karing4Life",
+  "description": "New York families, caregivers and agencies, connected directly.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FEFAE0",
+  "theme_color": "#FEFAE0",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

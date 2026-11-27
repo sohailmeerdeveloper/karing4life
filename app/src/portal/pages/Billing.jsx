@@ -130,7 +130,7 @@ export default function Billing() {
           <Notice icon="lock">Payments are processed securely by Stripe. Card details never touch Karing4Life’s servers.</Notice>
         </div>
       </div>
-      <Checkout open={!!checkout} onClose={() => setCheckout(null)} items={checkout?.items || []} title={checkout?.portal ? 'Billing portal' : checkout?.title} />
+      <Checkout open={!!checkout} onClose={() => setCheckout(null)} items={checkout?.items || []} title={checkout?.title} portal={checkout?.portal} />
     </>
   );
 }

@@ -36,7 +36,7 @@
   font: 700 16px var(--font); transition: filter var(--dur), transform var(--dur), background var(--dur);
 }
 .wl-btn:active { transform: scale(.97); }
-.wl-primary { border: 0; background: var(--rust); color: #fff; }
+.wl-primary { border: 0; background: var(--rust-ink); color: #fff; }
 .wl-primary:hover { filter: brightness(1.07); }
 .wl-ghost { border: 1px solid var(--line-strong); background: var(--paper); color: var(--ink); }
 .wl-ghost:hover { background: rgba(var(--olive-rgb), .08); }
@@ -64,7 +64,7 @@
 .cs-form input::placeholder { color: var(--placeholder); }
 .cs-form button {
   flex: none; border: 0; border-radius: 999px; padding: 0 32px; cursor: pointer;
-  font: 700 17px var(--font); background: var(--rust); color: #fff; transition: filter var(--dur), transform var(--dur);
+  font: 700 17px var(--font); background: var(--rust-ink); color: #fff; transition: filter var(--dur), transform var(--dur);
 }
 .cs-form button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .cs-form button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /portal/
+Disallow: /reset-password
+
+Sitemap: https://www.karing4life.com/sitemap.xml

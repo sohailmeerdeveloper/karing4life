@@ -82,7 +82,7 @@ export function PageHead({ title, sub, help, actions, back, badge }) {
       {back && <Link className="back-link" to={back[0]}><PIcon name="arrowL" />{back[1]}</Link>}
       <div className="ph">
         <div className="ph-t">
-          <h1>{title}{badge}{help && <Info tip={help} />}</h1>
+          <div className="ph-h1">{/* the badge sits beside the heading, not inside it */}<h1>{title}{help && <Info tip={help} />}</h1>{badge}</div>
           {sub && <p>{sub}</p>}
         </div>
         {actions && <div className="ph-actions">{actions}</div>}
@@ -391,7 +391,7 @@ export function Section({ title, icon, count, defaultOpen = false, children, onC
         {count > 0 && <span className="fsec-n">{count}</span>}
         <PIcon name="chevD" className="pi-sm fsec-chev" />
       </button>
-      <div className="fsec-b"><div className="fsec-in">
+      <div className="fsec-b" inert={!open}><div className="fsec-in">
         {children}
         {onClear && count > 0 && <button type="button" className="fsec-clear" onClick={onClear}>Clear</button>}
       </div></div>

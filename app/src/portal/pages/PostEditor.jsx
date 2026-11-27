@@ -5,7 +5,8 @@ import { supabase, q, errText } from '../../lib/supabase.js';
 import { useAsync } from '../../lib/useAsync.js';
 import { toast } from '../../lib/toast.jsx';
 import { usePortal } from '../context.jsx';
-import { Btn, Card, Chips, Field, Notice, PageHead, SchedulePicker, Skel, Empty, regionName } from '../ui.jsx';
+import { Btn, Card, Chips, Field, Notice, PageHead, SchedulePicker, Skel, Empty, regionName, fmtDate } from '../ui.jsx';
+import { nextFreePost } from './MyPosts.jsx';
 import { SKILLED, NONSKILLED, RECIPIENTS, DURATIONS } from '../caregiver.jsx';
 import { REGIONS, GROUPS } from '../../data/data.js';
 
@@ -25,16 +26,28 @@ export default function PostEditor() {
   const { data, loading } = useAsync(async () => {
     const regions = isAgency ? await q(supabase.rpc('access_regions', { uid: me, plan_kind: 'agency' })) : REGIONS.map((r) => r.key);
     const post = id ? await q(supabase.from('posts').select('*').eq('id', id).eq('author_id', me).maybeSingle()) : null;
-    return { regions, post };
+    // a family can post once every N days: check before they fill the form in
+    const mine = !id && !isAgency ? await q(supabase.from('posts').select('kind,created_at').eq('author_id', me).eq('kind', 'family')) : [];
+    return { regions, post, mine };
   }, [id, me]);
 
   useEffect(() => {
     if (!data) return;
     if (data.post) setV({ ...BLANK, ...data.post, hours_per_week: data.post.hours_per_week ?? '', start_date: data.post.start_date || '', town: data.post.town || '', pay_range: data.post.pay_range || '' });
-    else setV({ ...BLANK, region_key: data.regions.includes(profile?.region_key) ? profile.region_key : data.regions.length === 1 ? data.regions[0] : '', town: profile?.town || '' });
-  }, [data, profile]);
+    // agencies start with a blank town (their office town is rarely where the job is)
+    else setV({ ...BLANK, region_key: data.regions.includes(profile?.region_key) ? profile.region_key : data.regions.length === 1 ? data.regions[0] : '', town: isAgency ? '' : profile?.town || '' });
+  }, [data, profile, isAgency]);
 
   if (loading || !v) return <Skel h={300} n={1} />;
+  const cooldown = !id && !isAgency ? nextFreePost(data.mine, price('family_post_cooldown_days', 14)) : null;
+  if (cooldown) return (
+    <>
+      <PageHead back={[path, 'My requests']} title="Post a care request" />
+      <Card><Empty icon="hourglass" title={'Your next free request opens ' + fmtDate(cooldown.toISOString(), { weekday: 'long', month: 'long', day: 'numeric' })}
+        body={`You can post one free request every ${price('family_post_cooldown_days', 14)} days. Meanwhile you can keep messaging caregivers from your open request.`}
+        action={<Btn to={path} icon="arrowL" variant="primary">Back to my requests</Btn>} /></Card>
+    </>
+  );
   if (id && !data.post) return <Card><Empty icon="lock" title="Post not found" action={<Btn to={path} icon="arrowL" variant="primary">Back</Btn>} /></Card>;
   const set = (patch) => { setV((x) => ({ ...x, ...patch })); setErrs((e) => { const n = { ...e }; Object.keys(patch).forEach((k) => delete n[k]); return n; }); };
   const editing = !!data.post;
@@ -84,8 +97,8 @@ export default function PostEditor() {
         <div className="stack">
           <Card title="The basics" icon="pen">
             <div className="pf">
-              <Field label="Title" error={errs.title} hint={isAgency ? 'e.g. “Weekend HHA in Westchester”' : 'e.g. “Afternoon companion for my mother, 81”'}>{(fid) => <input id={fid} className="pin" maxLength={120} value={v.title} onChange={(e) => set({ title: e.target.value })} aria-invalid={!!errs.title} autoFocus />}</Field>
-              <Field label="Details" error={errs.body} hint="Routine, personality, pets, languages, anything that helps. No phone numbers or medical records.">{(fid) => (
+              <Field label="Title" error={errs.title} hint={isAgency ? 'e.g. “Weekend HHA in Westchester”' : 'e.g. “Afternoon companion for my mother, 81”'}>{(fid) => <input id={fid} className="pin" maxLength={120} value={v.title} onChange={(e) => set({ title: e.target.value })} aria-invalid={!!errs.title} autoFocus={window.matchMedia('(pointer: fine)').matches} />}</Field>
+              <Field label="Details" error={errs.body} hint={isAgency ? 'Duties, required license or certification, shift pattern, experience and benefits. No phone numbers or emails.' : 'Routine, personality, pets, languages, anything that helps. No phone numbers or medical records.'}>{(fid) => (
                 <><textarea id={fid} className="pta" style={{ minHeight: 160 }} maxLength={3000} value={v.body} onChange={(e) => set({ body: e.target.value })} aria-invalid={!!errs.body} /><div className="counter">{v.body.length} / 3000</div></>
               )}</Field>
               <div className="pf-row">
@@ -95,18 +108,18 @@ export default function PostEditor() {
                     {regionOpts.map(([g, rs]) => <optgroup key={g} label={GROUPS[g]}>{rs.map((r) => <option key={r.key} value={r.key}>{r.name}</option>)}</optgroup>)}
                   </select>
                 )}</Field>
-                <Field label="Town or neighborhood" optional>{(fid) => <input id={fid} className="pin" maxLength={80} value={v.town} onChange={(e) => set({ town: e.target.value })} placeholder="e.g. Huntington" />}</Field>
+                <Field label="Town or neighborhood" optional>{(fid) => <input id={fid} className="pin" maxLength={80} value={v.town} onChange={(e) => set({ town: e.target.value })} placeholder={isAgency ? 'Where the job is, e.g. Hauppauge' : 'e.g. Huntington'} />}</Field>
               </div>
             </div>
           </Card>
           <Card title="Type of care" icon="steth">
             <div className="pf">
-              <div><div className="chip-group-label">Skilled care</div><Chips options={SKILLED} value={v.care_types} onChange={(x) => set({ care_types: x })} /></div>
-              <div><div className="chip-group-label">Non-skilled care</div><Chips options={NONSKILLED} value={v.care_types} onChange={(x) => set({ care_types: x })} /></div>
+              <div><div className="chip-group-label">Skilled care</div><Chips label="Skilled care" options={SKILLED} value={v.care_types} onChange={(x) => set({ care_types: x })} /></div>
+              <div><div className="chip-group-label">Non-skilled care</div><Chips label="Non-skilled care" options={NONSKILLED} value={v.care_types} onChange={(x) => set({ care_types: x })} /></div>
               {errs.care_types && <div className="ph-err" role="alert">{errs.care_types}</div>}
               <div className="pf-row">
-                <div className="pfield"><span className="pl">Care recipient</span><Chips multi={false} options={RECIPIENTS} value={v.recipient} onChange={(x) => set({ recipient: x })} /></div>
-                <div className="pfield"><span className="pl">Duration</span><Chips multi={false} options={DURATIONS.map(([k]) => [k, k])} value={v.duration} onChange={(x) => set({ duration: x })} /></div>
+                <div className="pfield"><span className="pl">Care recipient</span><Chips label="Care recipient" multi={false} options={RECIPIENTS} value={v.recipient} onChange={(x) => set({ recipient: x })} /></div>
+                <div className="pfield"><span className="pl">Duration</span><Chips label="Duration" multi={false} options={DURATIONS.map(([k]) => [k, k])} value={v.duration} onChange={(x) => set({ duration: x })} /></div>
               </div>
             </div>
           </Card>

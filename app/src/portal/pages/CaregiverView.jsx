@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase, q, errText } from '../../lib/supabase.js';
 import { useAsync } from '../../lib/useAsync.js';
@@ -24,6 +24,8 @@ export default function CaregiverView() {
     return p && cg && p.status === 'active' ? { p, cg, saved: sv.length > 0 } : null;
   }, [id, me]);
 
+  const who = data?.p?.full_name;
+  useEffect(() => { if (who) document.title = who + ' · Caregiver profile · Karing4Life'; }, [who]);
   if (loading) return <Skel h={180} n={2} />;
   if (!data) return <Card><Empty icon="user" title="Caregiver not found" body="This profile may no longer be available." action={<Btn variant="primary" icon="arrowL" to={base + '/find'}>Back to search</Btn>} /></Card>;
   const save = async () => {

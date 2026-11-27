@@ -4,7 +4,8 @@ import { useQuery, useTitle } from '../lib/hooks.js';
 import { LogoImg } from '../components/bits.jsx';
 import { PwToggle } from '../components/PwToggle.jsx';
 import { toast } from '../lib/toast.jsx';
-import { supabase, errText } from '../lib/supabase.js';
+import { supabase, errText, setRemember } from '../lib/supabase.js';
+import { EMAIL_RE } from '../lib/waitlist.js';
 import { useAuth } from '../lib/auth.jsx';
 import { PRELAUNCH } from '../lib/config.js';
 import { openPrelaunch } from '../lib/prelaunch.js';
@@ -28,12 +29,14 @@ export default function SigninPage() {
     const em = e.currentTarget.elements.sEmail, pw = e.currentTarget.elements.sPw;
     setErr('');
     if (!em.value.trim() || !pw.value) { (em.value ? pw : em).focus(); setErr('Enter your email and password.'); return; }
+    if (!EMAIL_RE.test(em.value.trim())) { em.focus(); setErr('That doesn’t look like an email address.'); return; }
     setBusy(true);
+    setRemember(e.currentTarget.elements.sKeep.checked);
     const { data, error } = await supabase.auth.signInWithPassword({ email: em.value.trim(), password: pw.value });
     if (error) {
       setBusy(false);
-      if (PRELAUNCH) { openPrelaunch('signin', em.value.trim()); return; }
-      setErr(errText(error)); return;
+      setErr(/Invalid login credentials/i.test(error.message) ? 'Incorrect email or password.' : errText(error) || 'Couldn’t sign you in. Please try again.');
+      pw.value = ''; pw.focus(); return;
     }
     const { data: p } = await supabase.from('profiles').select('status').eq('id', data.user.id).maybeSingle();
     if (p?.status === 'suspended') {
@@ -46,7 +49,9 @@ export default function SigninPage() {
   const sendReset = async () => {
     const v = fpRef.current;
     if (!v.value || !v.checkValidity()) { v.focus(); toast.error('Enter your email', 'We’ll send the reset link there.'); return; }
-    await supabase.auth.resetPasswordForEmail(v.value.trim(), { redirectTo: window.location.origin + '/reset-password' });
+    const { error } = await supabase.auth.resetPasswordForEmail(v.value.trim(), { redirectTo: window.location.origin + '/reset-password' });
+    if (error && (error.status === 429 || /rate limit/i.test(error.message))) { toast.error('Too many requests', 'Please wait a few minutes before asking for another link.'); return; }
+    if (error && /fetch|network/i.test(error.message)) { toast.error('Couldn’t send the link', 'Check your connection and try again.'); return; }
     toast('Check your inbox', 'If that email has an account, a reset link is on its way.'); setForgot(false);
   };
   return (
@@ -68,7 +73,7 @@ export default function SigninPage() {
               </div>
             </div>
             <div className="sc-row">
-              <label className="check" style={{ fontSize: '14px' }}><input type="checkbox" defaultChecked />Keep me signed in</label>
+              <label className="check" style={{ fontSize: '14px' }}><input type="checkbox" id="sKeep" defaultChecked />Keep me signed in</label>
               <button type="button" className="link-btn" id="forgotLink" aria-expanded={forgot} aria-controls="forgotPanel" onClick={() => { setForgot(!forgot); if (!forgot) setTimeout(() => fpRef.current?.focus(), 50); }}>Forgot password?</button>
             </div>
             <div className={'forgot-panel' + (forgot ? ' open' : '')} id="forgotPanel">
@@ -79,7 +84,7 @@ export default function SigninPage() {
                 <button className="btn btn-primary btn-sm" type="button" id="fpSend" onClick={sendReset} style={{ '--bh': '44px' }}>Send link</button>
               </div>
             </div>
-            {err && <p className="form-err" role="alert">{err}</p>}
+            {err && <p className="form-err" role="alert">{err}{PRELAUNCH && err.startsWith('Incorrect') && <> New here? Accounts open at launch. <button type="button" className="link-btn" onClick={() => openPrelaunch('signup', document.getElementById('sEmail').value.trim())}>Get notified</button></>}</p>}
             <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
           </form>
           <div className="sc-divider">New to Karing4Life?</div>

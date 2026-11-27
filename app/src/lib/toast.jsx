@@ -15,7 +15,8 @@ export function Toasts() {
   const [items, setItems] = useState([]);
   useEffect(() => {
     const on = (t) => {
-      setItems((xs) => [...xs.slice(-3), t]);
+      // a success means the earlier problem is solved, so older error toasts go away
+      setItems((xs) => [...(t.kind === 'ok' ? xs.filter((x) => x.kind !== 'error') : xs).slice(-3), t]);
       const ms = t.kind === 'error' ? 6000 : 3800;
       setTimeout(() => setItems((xs) => xs.map((x) => (x.id === t.id ? { ...x, out: true } : x))), ms);
       setTimeout(() => setItems((xs) => xs.filter((x) => x.id !== t.id)), ms + 250);

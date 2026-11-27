@@ -2,6 +2,29 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTitle, useQuery, REDUCED } from '../lib/hooks.js';
 import { CtaBand, RegionOptions, Icon } from '../components/bits.jsx';
 import { CARE, CARE_BY, R, REQUESTS, SCHED, DAYS, DAY_FULL, fmtDate } from '../data/data.js';
+import { supabase } from '../lib/supabase.js';
+
+/* Real open family requests come from the public_request_teasers() database function, which
+   returns only non-identifying fields (no title, description, author or town). The blurred block
+   shows placeholder text, so nothing private ever reaches the browser. Until that function is
+   installed the page falls back to the sample requests (also without their text). */
+const toCard = (p) => ({
+  id: p.id, added: p.created_at.slice(0, 10), start: p.start_date, region: p.region_key, care: (p.care_types || []).filter((k) => CARE_BY[k]),
+  recipient: p.recipient || 'Adult', duration: p.duration || 'Long-term', sched: p.schedule || {}, hours: p.hours_per_week,
+});
+const SAMPLES = REQUESTS.map(({ title, text, town, ...r }) => r); // eslint-disable-line no-unused-vars
+const PLACEHOLDER = ['Care request details', 'The family’s full description is shown to caregivers with this region unlocked. Families never share addresses here.'];
+function useRequests() {
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    let live = true;
+    supabase.rpc('public_request_teasers').then(({ data, error }) => {
+      if (live) setRows(error ? SAMPLES : data.map(toCard).filter((r) => R[r.region]));
+    });
+    return () => { live = false; };
+  }, []);
+  return rows;
+}
 
 const EMPTY = { q: '', care: [], region: '', recipient: '', duration: '', sched: [], sort: 'new' };
 const GROUPS = [['skilled', 'Skilled Care'], ['nonskilled', 'Non-Skilled Care']];
@@ -24,18 +47,18 @@ function Card({ r }) {
     <article className="req-card">
       <div className="rc-top"><span className="badge badge-ink"><Icon name="heart" className="i-sm" />Family request</span><span className="rc-date">Added on {fmtDate(r.added)}</span></div>
       <div className="rc-locked">
-        <div className="rc-blur" aria-hidden="true"><h3>{r.title}</h3><p>{r.text}</p></div>
+        <div className="rc-blur" aria-hidden="true"><h3>{PLACEHOLDER[0]}</h3><p>{PLACEHOLDER[1]}</p></div>
         <span className="rc-lock-badge"><Icon name="lock" />Unlock {reg.name} to read</span>
         <span className="sr-only">Title and description are hidden until the {reg.name} region is unlocked.</span>
       </div>
       <div className="rc-fields">
-        <div className="rc-field wide"><div className="k"><Icon name="heart" />Care types</div><div className="v">{r.care.map((k) => CARE_BY[k].short).join(', ')}</div></div>
+        <div className="rc-field wide"><div className="k"><Icon name="heart" />Care types</div><div className="v">{r.care.map((k) => CARE_BY[k].short).join(', ') || 'Ask the family'}</div></div>
         <div className="rc-field"><div className="k"><Icon name="pin" />Region</div><div className="v">{reg.name}</div></div>
-        <div className="rc-field wide"><div className="k"><Icon name="cal" />Schedule</div><div className="v">{schedText(r)}</div></div>
+        <div className="rc-field wide"><div className="k"><Icon name="cal" />Schedule</div><div className="v">{schedText(r) || 'Flexible'}</div></div>
         <div className="rc-field"><div className="k"><Icon name="user" />Recipient</div><div className="v">{r.recipient}</div></div>
-        <div className="rc-field"><div className="k"><Icon name="clock" />Starting</div><div className="v">{fmtDate(r.start)}</div></div>
+        <div className="rc-field"><div className="k"><Icon name="clock" />Starting</div><div className="v">{r.start ? fmtDate(r.start) : 'Flexible'}</div></div>
         <div className="rc-field"><div className="k"><Icon name="hourglass" />Duration</div><div className="v">{r.duration}</div></div>
-        <div className="rc-field"><div className="k"><Icon name="clock" />Hours</div><div className="v">{r.hours ? r.hours + ' hrs / wk' : 'Live-in'}</div></div>
+        <div className="rc-field"><div className="k"><Icon name="clock" />Hours</div><div className="v">{r.hours ? r.hours + ' hrs / wk' : r.sched.livein ? 'Live-in' : 'To discuss'}</div></div>
       </div>
       <div className="rc-foot"><span className="rc-note">$8.99/mo · cancel anytime · every region free for 14 days</span><a className="btn btn-accent btn-sm" href={'/membership?region=' + reg.key}><Icon name="unlock" />Unlock {reg.name} · $8.99/mo</a></div>
     </article>
@@ -62,10 +85,11 @@ export default function RequestsPage() {
   }, [params.care, params.region, params.q]);
 
   const toggleIn = (arr, v, on) => (on ? [...new Set([...arr, v])] : arr.filter((x) => x !== v));
+  const rows = useRequests();
   const list = useMemo(() => {
-    const out = REQUESTS.filter((r) => {
+    const out = (rows || []).filter((r) => {
       if (f.q) {
-        const hay = [r.title, r.text, r.town, R[r.region].name, r.care.map((k) => CARE_BY[k].label).join(' '), r.recipient, r.duration, schedText(r)].join(' ').toLowerCase();
+        const hay = [R[r.region].name, r.care.map((k) => CARE_BY[k].label).join(' '), r.recipient, r.duration, schedText(r)].join(' ').toLowerCase();
         if (!hay.includes(f.q)) return false;
       }
       if (f.care.length && !r.care.some((k) => f.care.includes(k))) return false;
@@ -75,8 +99,8 @@ export default function RequestsPage() {
       if (f.sched.length && !f.sched.some((v) => { const [k, d] = v.split(':'); return r.sched[k] && r.sched[k].includes(+d); })) return false;
       return true;
     });
-    return out.sort((a, b) => (f.sort === 'old' ? a.added.localeCompare(b.added) : f.sort === 'start' ? a.start.localeCompare(b.start) : b.added.localeCompare(a.added)));
-  }, [f]);
+    return out.sort((a, b) => (f.sort === 'old' ? a.added.localeCompare(b.added) : f.sort === 'start' ? (a.start || '9').localeCompare(b.start || '9') : b.added.localeCompare(a.added)));
+  }, [f, rows]);
 
   const chips = [];
   if (f.q) chips.push(['q', '“' + f.q + '”']);
@@ -110,7 +134,7 @@ export default function RequestsPage() {
           <div className="rs-in">
             <Icon name="search" />
             <label className="sr-only" htmlFor="reqQ">Search care requests</label>
-            <input id="reqQ" type="search" placeholder="Search by keyword, e.g. live-in, Spanish, therapy" value={qDraft}
+            <input id="reqQ" type="search" placeholder="Search by care type or region, e.g. live-in, nursing, Brooklyn" value={qDraft}
               onChange={(e) => { setQDraft(e.target.value); set({ q: e.target.value.trim().toLowerCase() }); }} />
           </div>
           <button className="btn btn-primary" type="submit">Search</button>
@@ -182,7 +206,7 @@ export default function RequestsPage() {
           </aside>
           <div className="results">
             <div className="results-head">
-              <p className="count" ref={countRef} aria-live="polite">{list.length ? <>Showing 1–{list.length} of {list.length} <span>{list.length === 1 ? 'result' : 'results'}</span></> : <>No results <span>for these filters</span></>}</p>
+              <p className="count" ref={countRef} aria-live="polite">{!rows ? <>Loading requests…</> : list.length ? <>Showing 1–{list.length} of {list.length} <span>{list.length === 1 ? 'result' : 'results'}</span></> : <>No results <span>for these filters</span></>}</p>
               <div className="rh-actions">
                 <button className="btn btn-ghost btn-sm filters-toggle" aria-expanded={filtersOpen} aria-controls="filters" onClick={() => setFiltersOpen(!filtersOpen)}><Icon name="filter" />Filters</button>
                 <div className="sort">

@@ -92,6 +92,7 @@ export default function Messages() {
 
   return (
     <div className={'chat' + (active ? ' has-active' : '')}>
+      <h1 className="sr-only">Messages</h1>
       <div className="chat-list">
         <div className="chat-list-h">
           <h2>Messages</h2>
@@ -200,10 +201,10 @@ function Thread({ conv, member, post, isBlocked, onBlockChange, onBack, onRead }
         <IconBtn icon="arrowL" label="All conversations" onClick={onBack} className="only-m" />
         <Avatar name={name} url={member?.agency?.logo_url || member?.avatar_url} square={other.role === 'agency'} />
         <div className="ch-m">
-          <strong>{name}</strong>
+          <strong>{profileLink ? <Link to={profileLink} style={{ color: 'inherit' }}>{name}</Link> : name}</strong>
           <span>{ROLE_NAME[other.role] || ''}{member?.town ? ' · ' + member.town : ''}</span>
         </div>
-        {profileLink && <IconBtn icon="user" label="View profile" to={profileLink} />}
+        {profileLink && <IconBtn icon="user" label="View profile" to={profileLink} className="hide-sm" />}
         <IconBtn icon="flag" label="Report" onClick={() => setReport(true)} />
         <IconBtn icon="ban" tone={isBlocked ? 'success' : 'danger'} label={isBlocked ? 'Unblock' : 'Block'} onClick={toggleBlock} tipPos="left" />
       </div>

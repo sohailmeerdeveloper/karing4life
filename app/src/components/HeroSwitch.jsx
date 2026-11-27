@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useAuth } from '../lib/auth.jsx';
 import { useNavigate } from 'react-router-dom';
 import { Icon, CareOptions, RegionOptions } from './bits.jsx';
 import { REDUCED } from '../lib/hooks.js';
@@ -67,12 +68,16 @@ export function HeroSwitch() {
   const tabs = useRef([]);
   const goo = useGoo();
   const navigate = useNavigate();
+  const { user, roles } = useAuth();
   const select = (i, focus) => { setSel(i); goo.go(i); if (focus) tabs.current[i]?.focus(); };
 
   const submit = (kind) => (e) => {
     e.preventDefault();
     const f = e.currentTarget, care = f.elements.care.value, reg = f.elements.region.value;
     const q = new URLSearchParams(); if (care) q.set('care', care); if (reg) q.set('region', reg);
+    // signed-in members go straight to the matching search in their portal, filters kept
+    const portal = { need: 'family', hire: 'agency', give: 'caregiver' }[kind];
+    if (user && roles.includes(portal)) { navigate(`/portal/${portal}/${kind === 'give' ? 'posts' : 'find'}` + (q.toString() ? '?' + q : '')); return; }
     if (kind === 'need') { q.set('role', 'family'); navigate('/join?' + q); }
     else if (kind === 'give') navigate('/requests' + (q.toString() ? '?' + q : ''));
     else { q.set('role', 'agency'); navigate('/join?' + q); }

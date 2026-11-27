@@ -36,7 +36,7 @@
 .faq-item.open button .i { transform: rotate(180deg); }
 .faq-item .ans { padding: 0 20px 20px; color: var(--ink-2); line-height: 1.7; animation: fqIn .25s var(--ease); }
 @keyframes fqIn { from { opacity: 0; transform: translateY(-4px); } }
-@media (max-width: 860px) { .faq-layout { grid-template-columns: minmax(0, 1fr); } .faq-nav { position: static; display: flex; overflow-x: auto; scrollbar-width: none; } .faq-nav button { flex: none; } }
+@media (max-width: 860px) { .faq-layout { grid-template-columns: minmax(0, 1fr); } .faq-nav { position: static; display: flex; flex-wrap: wrap; gap: 6px; } .faq-nav button { flex: none; height: 40px; background: var(--olive-50); } }
 
 /* legal */
 .legal { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: var(--s7); align-items: start; }

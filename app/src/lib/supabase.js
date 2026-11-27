@@ -4,8 +4,23 @@ import { createClient } from '@supabase/supabase-js';
 const URL = import.meta.env.VITE_SUPABASE_URL || 'https://xnbgrzwbqnyxzjbvjpbf.supabase.co';
 const KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_hdmPK_8QQVvYU5k4bUlJ9A_yf9ujmdR';
 
+/* "Keep me signed in" on the sign-in form: ticked → the session lives in localStorage (survives
+   closing the browser); unticked → sessionStorage (ends with the browser session). */
+const REMEMBER = 'k4l-remember';
+const safe = (f) => { try { return f(); } catch { return null; } };
+const remembered = () => safe(() => localStorage.getItem(REMEMBER)) !== '0';
+export const setRemember = (on) => safe(() => localStorage.setItem(REMEMBER, on ? '1' : '0'));
+const storage = {
+  getItem: (k) => safe(() => localStorage.getItem(k)) ?? safe(() => sessionStorage.getItem(k)),
+  setItem: (k, v) => {
+    const [keep, drop] = remembered() ? [localStorage, sessionStorage] : [sessionStorage, localStorage];
+    safe(() => keep.setItem(k, v)); safe(() => drop.removeItem(k));
+  },
+  removeItem: (k) => { safe(() => localStorage.removeItem(k)); safe(() => sessionStorage.removeItem(k)); },
+};
+
 export const supabase = createClient(URL, KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'k4l-auth' },
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'k4l-auth', storage },
 });
 
 /** Turns a Supabase/Postgres error into a sentence a member can read. */
