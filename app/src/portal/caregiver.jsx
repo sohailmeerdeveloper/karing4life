@@ -95,7 +95,7 @@ export function CaregiverProfileView({ p = {}, cg = {}, actions }) {
           <Avatar name={p.full_name} url={p.avatar_url} size="xl" />
           <div className="ph-m">
             <div className="flex flex-wrap" style={{ gap: 8 }}><Avail v={cg.availability} /><Verified status={cg.verification} /></div>
-            <h1>{p.full_name}</h1>
+            <h2 className="prof-name">{p.full_name}</h2>
             <div className="post-meta">
               <span><PIcon name="steth" />{cg.credential || 'Caregiver'}</span>
               {p.town && <span><PIcon name="pin" />{p.town}</span>}

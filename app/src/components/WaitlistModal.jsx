@@ -3,6 +3,7 @@ import { LogoImg } from './bits.jsx';
 import { EMAIL_RE, joinWaitlist, markClosed, markJoined, shouldPrompt, hasJoined } from '../lib/waitlist.js';
 import { onPrelaunch } from '../lib/prelaunch.js';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../lib/auth.jsx';
 
 const COPY = {
   signup: ['Accounts open soon', 'We’re almost ready to ', 'welcome you.', 'Karing4Life is still under development, so new accounts aren’t open yet. Leave your email and we’ll tell you the moment you can join.'],
@@ -12,9 +13,11 @@ import '../gate.css';
 
 /* Pre-launch popup shown over the site on arrival: asks for an email so we can tell the visitor
    when Karing4Life opens. Closing it first shows a short "are you sure" note, then lets them browse. */
+const hasSession = () => { try { return !!(localStorage.getItem('k4l-auth') || sessionStorage.getItem('k4l-auth')); } catch { return false; } };
+
 export default function WaitlistModal() {
   const { pathname } = useLocation();
-  const [open, setOpen] = useState(() => !pathname.startsWith('/portal') && shouldPrompt());
+  const [open, setOpen] = useState(() => !pathname.startsWith('/portal') && shouldPrompt() && !hasSession());
   const [reason, setReason] = useState(null);       // null = arrival popup; 'signup' | 'signin' = opened by a form
   const [step, setStep] = useState('form');      // form | confirm | done
   const [state, setState] = useState('idle');    // idle | sending | invalid | failed
@@ -22,6 +25,9 @@ export default function WaitlistModal() {
   const [leaving, setLeaving] = useState(false);
   const card = useRef(null);
   const input = useRef(null);
+  const { user, ready } = useAuth();
+  // signed-in members already have an account: never greet them with the arrival popup
+  useEffect(() => { if (ready && user && !reason) setOpen(false); }, [ready, user, reason]);
 
   // forms (sign-up, sign-in, Google) open the popup on demand
   useEffect(() => onPrelaunch(({ reason: r, email: em }) => {

@@ -5,7 +5,7 @@
    ========================================================================== */
 :root {
   --danger: #B8402B; --danger-ink: #9E2F1C; --danger-50: #FBE9E5; --danger-100: #F5D3CB;
-  --success: #4E8A3A; --success-ink: #3B6E2B; --success-50: #E9F2E3; --success-100: #D3E6C8;
+  --success: #447A33; --success-ink: #3B6E2B; --success-50: #E9F2E3; --success-100: #D3E6C8;
   --warn: #B7791F; --warn-50: #FBF1DF; --warn-100: #F4E3C6;
   --side-w: 264px;
   --top-h: 64px;
@@ -80,7 +80,7 @@
 
 /* ---------- Mobile tab bar + "More" sheet ---------- */
 .p-tabs { display: none; }
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .portal { grid-template-columns: minmax(0, 1fr); }
   .p-side { display: none; }
   .p-top { padding: 0 12px 0 16px; height: 60px; }
@@ -107,6 +107,7 @@
 /* ---------- Page header ---------- */
 .ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
 .ph-t { min-width: 0; }
+.ph-h1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ph h1 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.03em; line-height: 1.1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ph p { color: var(--muted); margin-top: 6px; font-size: 15px; max-width: 680px; }
 .ph-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -214,13 +215,21 @@
 
 /* tooltips */
 [data-tip] { position: relative; }
-[data-tip]::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translate(-50%, 4px); padding: 6px 10px; border-radius: 8px; background: var(--deep); color: var(--on-deep); font-size: 12px; font-weight: 600; line-height: 1.3; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s var(--ease), transform .15s var(--ease); z-index: 70; box-shadow: var(--shadow); }
-[data-tip]:hover::after, [data-tip]:focus-visible::after { opacity: 1; transform: translate(-50%, 0); transition-delay: .25s; }
-[data-tip-pos="bottom"]::after { bottom: auto; top: calc(100% + 8px); transform: translate(-50%, -4px); }
-[data-tip-pos="left"]::after { left: auto; right: calc(100% + 8px); bottom: 50%; transform: translate(4px, 50%); }
-[data-tip-pos="left"]:hover::after { transform: translate(0, 50%); }
-[data-tip-wide]::after { white-space: normal; width: max-content; max-width: 260px; text-align: left; }
-@media (hover: none) { [data-tip]::after { display: none; } }
+/* The bubble only exists while shown (a hidden one still widened the page), fades in, and is
+   pulled inward near the screen edges (data-tip-edge is set by PortalLayout on hover/focus). */
+[data-tip]::after { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translate(-50%, 0); padding: 6px 10px; border-radius: 8px; background: var(--deep); color: var(--on-deep); font-size: 12px; font-weight: 600; line-height: 1.3; white-space: nowrap; pointer-events: none; z-index: 70; box-shadow: var(--shadow); animation: tipIn .15s var(--ease) .25s both; }
+[data-tip]:hover::after, [data-tip]:focus-visible::after { content: attr(data-tip); }
+@keyframes tipIn { from { opacity: 0; translate: 0 4px; } to { opacity: 1; translate: 0 0; } }
+[data-tip-pos="bottom"]::after { bottom: auto; top: calc(100% + 8px); }
+[data-tip-pos="left"]::after { left: auto; right: calc(100% + 8px); bottom: 50%; transform: translate(0, 50%); }
+[data-tip-edge="right"]:not([data-tip-pos="left"])::after { left: auto; right: 0; transform: none; }
+[data-tip-edge="left"]:not([data-tip-pos="left"])::after { left: 0; transform: none; }
+[data-tip-wide]::after { white-space: normal; width: max-content; max-width: min(260px, calc(100vw - 32px)); text-align: left; }
+@media (hover: none) {
+  [data-tip]:hover::after, [data-tip]:focus-visible::after { content: none; }
+  /* touch: the ⓘ dots carry real information, so a tap (focus) shows them */
+  .info-dot[data-tip]:focus::after { content: attr(data-tip); }
+}
 .info-dot { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: var(--muted); cursor: help; vertical-align: middle; }
 .info-dot:hover { color: var(--olive); background: var(--olive-50); }
 .info-dot .pi { width: 16px; height: 16px; }
@@ -383,7 +392,8 @@ a.check-item:hover { border-color: var(--olive); background: var(--olive-50); co
 .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
 .toolbar .pin-ic { flex: 1; min-width: 220px; }
 .toolbar .psel { width: auto; min-width: 150px; }
-@media (max-width: 560px) { .toolbar .psel { flex: 1; min-width: 0; } }
+@media (max-width: 560px) { .toolbar .pin-ic { flex: 1 1 100%; min-width: 0; } .toolbar .psel { flex: 1 1 120px; min-width: 0; } }
+@media (max-width: 480px) { .chat-head { gap: 8px; padding: 10px 12px; } .chat-head .hide-sm { display: none !important; } }
 
 /* ---------- Lists & rows ---------- */
 .rows { display: grid; }
@@ -424,7 +434,7 @@ button.row { width: 100%; border: 0; background: none; text-align: left; cursor:
 }
 
 /* ---------- Post cards ---------- */
-.post-list { display: grid; gap: 14px; }
+.post-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .post-card { display: grid; gap: 12px; padding: 20px; border-radius: var(--p-radius); background: var(--white); border: 1px solid var(--line); color: var(--ink); transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease); }
 a.post-card:hover, .post-card.clickable:hover { color: var(--ink); border-color: rgba(var(--olive-rgb), .45); box-shadow: var(--shadow); transform: translateY(-2px); }
 .post-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
@@ -525,7 +535,7 @@ a.post-card:hover, .post-card.clickable:hover { color: var(--ink); border-color:
 .chat-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
 .chat-head .ch-m { min-width: 0; flex: 1; }
 .chat-head strong { display: block; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.chat-head span { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-head .ch-m > span { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chat-ctx { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--olive-50); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
 .chat-ctx .pi { width: 15px; height: 15px; color: var(--olive); flex: none; }
 .chat-ctx span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -548,7 +558,7 @@ a.post-card:hover, .post-card.clickable:hover { color: var(--ink); border-color:
 .chat-compose .send:disabled { background: var(--line-strong); }
 .chat-blocked { padding: 14px 16px; text-align: center; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); background: var(--paper); }
 .chat-empty { flex: 1; display: grid; place-items: center; text-align: center; padding: 40px; color: var(--muted); }
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .chat { height: calc(100svh - 60px - var(--tab-h) - 36px - env(safe-area-inset-bottom)); grid-template-columns: minmax(0, 1fr); border-radius: 16px; }
   .chat.has-active .chat-list { display: none; }
   .chat:not(.has-active) .chat-pane { display: none; }
@@ -637,7 +647,7 @@ a.post-card:hover, .post-card.clickable:hover { color: var(--ink); border-color:
 
 /* profile view */
 .prof-head { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
-.prof-head h1 { font-size: clamp(24px, 3vw, 30px); }
+.prof-head :is(h1, .prof-name) { font-size: clamp(24px, 3vw, 30px); }
 .prof-head .ph-m { flex: 1; min-width: 220px; display: grid; gap: 8px; }
 .prof-head .ph-act { display: flex; gap: 8px; flex-wrap: wrap; }
 .sec-t { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
@@ -693,7 +703,7 @@ a.post-card:hover, .post-card.clickable:hover { color: var(--ink); border-color:
 .only-m { display: none !important; }
 @media (max-width: 1100px) { .only-m { display: inline-flex !important; } .hide-m { display: none !important; } }
 .chat-head .only-m { display: none !important; }
-@media (max-width: 1024px) { .chat-head .only-m { display: inline-grid !important; } }
+@media (max-width: 900px) { .chat-head .only-m { display: inline-grid !important; } }
 .post-card:has(> a:hover) { border-color: rgba(var(--olive-rgb), .45); box-shadow: var(--shadow); transform: translateY(-2px); }
 .post-card > a h3 { transition: color var(--dur); }
 .post-card > a:hover h3 { color: var(--olive); }
@@ -785,7 +795,7 @@ a.post-card:hover, .post-card.clickable:hover { color: var(--ink); border-color:
 .page-in { animation: pageIn .38s cubic-bezier(.2, .8, .25, 1) both; }
 @keyframes pageIn { from { opacity: 0; transform: translateY(10px) scale(.985); } }
 .fade-in { animation: msgIn .3s var(--ease); }
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .chat.has-active .chat-pane { animation: slideFromRight .32s cubic-bezier(.2, .8, .25, 1); }
   .chat:not(.has-active) .chat-list { animation: slideFromLeft .32s cubic-bezier(.2, .8, .25, 1); }
 }
@@ -807,3 +817,13 @@ a.post-card:hover, .post-card.clickable:hover { color: var(--ink); border-color:
 .welcome .seg button { height: 36px; }
 .notice > div:not(.n-act) { flex: 1; min-width: 0; }
 @media (max-width: 560px) { .card { padding: 16px; } .card-flush { padding: 0; } .notice .n-act { margin-left: 32px; } }
+
+/* ---- Small-phone hardening (QA 2026-11-27) ----
+   Single-column grids default to an `auto` track that can't shrink below its content, so
+   cards (and their nowrap buttons) ran past the screen edge. Make them shrinkable and wrap. */
+.stack, .stack-sm { grid-template-columns: minmax(0, 1fr); }
+.card-h { flex-wrap: wrap; }
+.card-h > :first-child { min-width: 0; }
+.post-card { grid-template-columns: minmax(0, 1fr); }
+.post-top > * { min-width: 0; }
+@media (max-width: 400px) { .post-top { flex-wrap: wrap; } }

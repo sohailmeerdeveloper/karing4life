@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import { useAuth } from '../lib/auth.jsx';
+import { useAuth, justSignedOut } from '../lib/auth.jsx';
 import { PortalProvider } from './context.jsx';
 import PortalLayout from './PortalLayout.jsx';
 import { Btn, Loading } from './ui.jsx';
@@ -138,7 +138,7 @@ export default function PortalApp() {
   const { ready, user, profile, signOut } = useAuth();
   const loc = useLocation();
   if (!ready || (user && !profile)) return <Loading />;
-  if (!user) return <Navigate to={'/signin?next=' + encodeURIComponent(loc.pathname)} replace />;
+  if (!user) return <Navigate to={justSignedOut() ? '/' : '/signin?next=' + encodeURIComponent(loc.pathname)} replace />;
   if (profile.status === 'suspended' || !profile.roles?.length) {
     return (
       <div className="p-loading" style={{ padding: 24 }}>

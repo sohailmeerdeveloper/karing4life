@@ -6,7 +6,7 @@ import { Icon } from './Icon.jsx';
 export { Icon };
 
 export function LogoImg({ alt = 'Karing4Life logo', ...rest }) {
-  return <img src="/logo-olive.webp" alt={alt} decoding="async" {...rest} />;
+  return <img src="/logo-olive.webp" alt={alt} decoding="async" {...rest} style={{ objectFit: 'contain', ...rest.style }} />;
 }
 
 export function CareOptions({ any = 'Any' }) {

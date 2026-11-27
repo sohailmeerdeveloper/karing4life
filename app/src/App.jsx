@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Toasts } from './lib/toast.jsx';
-import { useReveal } from './lib/hooks.js';
+import { useReveal, useTitle } from './lib/hooks.js';
 import { Sprite } from './components/Sprite.jsx';
 import { Header, MobileMenu } from './components/Header.jsx';
 import { Footer } from './components/Footer.jsx';
@@ -37,7 +37,32 @@ const PAGES = Object.fromEntries(Object.entries(LOAD).map(([k, f]) => [k, lazy(f
 function Page({ children }) {
   const { pathname, search } = useLocation();
   useReveal(pathname + search);
+  // one canonical URL per page (no query string), so search engines don't see duplicates
+  useEffect(() => {
+    let l = document.querySelector('link[rel=canonical]');
+    if (!l) { l = document.createElement('link'); l.rel = 'canonical'; document.head.appendChild(l); }
+    l.href = 'https://www.karing4life.com' + pathname;
+  }, [pathname]);
   return <div className="page active">{children}</div>;
+}
+
+/** Unknown address: say so (and keep the URL) instead of silently showing the home page. */
+function NotFound() {
+  useTitle('Page not found · Karing4Life');
+  return (
+    <section className="flow" style={{ minHeight: '60vh', display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+      <div className="container" style={{ maxWidth: 560 }}>
+        <span className="eyebrow">Error 404</span>
+        <h1 style={{ fontSize: 'clamp(34px,4vw,48px)', margin: '12px 0 16px' }}>We can’t find <span className="serif" style={{ color: 'var(--olive)' }}>that page.</span></h1>
+        <p className="lead">The link may be old or mistyped. Try one of these instead.</p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 28 }}>
+          <a className="btn btn-primary" href="/">Go to the home page</a>
+          <a className="btn btn-ghost" href="/requests">Browse care requests</a>
+          <a className="btn btn-ghost" href="/contact">Contact us</a>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function Layout() {
@@ -92,7 +117,7 @@ function Layout() {
           <Routes>
             <Route path="/" element={<Page><HomePage /></Page>} />
             {Object.entries(PAGES).map(([k, P]) => <Route key={k} path={'/' + k} element={<Page><P /></Page>} />)}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Page><NotFound /></Page>} />
           </Routes>
         </Suspense>
       </main>

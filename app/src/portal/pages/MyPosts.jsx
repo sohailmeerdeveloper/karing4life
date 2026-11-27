@@ -50,7 +50,8 @@ export default function MyPosts() {
     toast('Closed', 'Caregivers no longer see it.'); reload(true);
   };
 
-  const newBtn = cooldown
+  const newBtn = !data ? <Btn variant="accent" icon="plus" disabled>{isAgency ? 'New job post' : 'New request'}</Btn>
+    : cooldown
     ? <span data-tip={`Your next free request opens ${fmtDate(cooldown.toISOString(), { month: 'long', day: 'numeric' })}`}><Btn variant="accent" icon="plus" disabled>New request</Btn></span>
     : noRegions ? <span data-tip="Subscribe to a region first"><Btn variant="accent" icon="plus" disabled>New job post</Btn></span>
     : <Btn variant="accent" icon="plus" to={path + '/new'}>{isAgency ? 'New job post' : 'New request'}</Btn>;
@@ -63,7 +64,7 @@ export default function MyPosts() {
         actions={newBtn} />
       {cooldown && <Notice icon="hourglass">Your next free request opens on <strong>{fmtDate(cooldown.toISOString(), { weekday: 'long', month: 'long', day: 'numeric' })}</strong>. Meanwhile you can keep messaging caregivers from your open request.</Notice>}
       {noRegions && <Notice tone="warn" icon="map" action={<Btn size="sm" variant="accent" to={base + '/regions'}>Choose regions</Btn>}>Subscribe to at least one region to post jobs.</Notice>}
-      <div style={{ margin: '16px 0' }}><Seg value={tab} onChange={setTab} tabs={[['open', 'Open', open.length], ['past', isAgency ? 'Closed' : 'Closed & expired', past.length]]} /></div>
+      <div style={{ margin: '16px 0' }}><Seg value={tab} onChange={setTab} tabs={[['open', 'Open', data ? open.length : null], ['past', isAgency ? 'Closed' : 'Closed & expired', data ? past.length : null]]} /></div>
       {loading ? <Skel h={170} n={2} />
         : list.length === 0 ? <Card><Empty icon={isAgency ? 'briefcase' : 'list'} title={tab === 'open' ? (isAgency ? 'No open jobs' : 'No open requests') : 'Nothing here yet'}
           body={tab === 'open' ? (isAgency ? 'Post a job and caregivers in that region will see it right away.' : 'Describe the care you need. It’s free and takes about two minutes.') : 'Closed and expired posts show up here.'}

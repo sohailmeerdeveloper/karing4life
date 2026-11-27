@@ -23,13 +23,16 @@ export async function joinWaitlist(email) {
   throw new Error('network');
 }
 
-/* Whether to show the popup. Joined → never again on this browser. Closed → not again this visit. */
+/* Whether to show the popup. Joined → never again on this browser. Closed → not again for 7 days.
+   Signed-in members never see it (checked in WaitlistModal). */
 const JOINED = 'k4l-joined';
 const CLOSED = 'k4l-popup-closed';
+const WEEK = 7 * 24 * 3600 * 1000;
 const get = (s, k) => { try { return s.getItem(k); } catch { return null; } };
-const set = (s, k) => { try { s.setItem(k, '1'); } catch { /* storage blocked */ } };
+const set = (s, k, v = '1') => { try { s.setItem(k, v); } catch { /* storage blocked */ } };
+const closedRecently = () => get(sessionStorage, CLOSED) || Date.now() - Number(get(localStorage, CLOSED) || 0) < WEEK;
 
 export const hasJoined = () => !!get(localStorage, JOINED);
-export const shouldPrompt = () => !get(localStorage, JOINED) && !get(sessionStorage, CLOSED);
+export const shouldPrompt = () => !get(localStorage, JOINED) && !closedRecently();
 export const markJoined = () => set(localStorage, JOINED);
-export const markClosed = () => set(sessionStorage, CLOSED);
+export const markClosed = () => { set(sessionStorage, CLOSED); set(localStorage, CLOSED, String(Date.now())); };

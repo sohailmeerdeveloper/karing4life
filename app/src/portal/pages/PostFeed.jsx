@@ -58,8 +58,8 @@ export default function PostFeed() {
       </div>
       {showFilters && (
         <Card style={{ marginBottom: 16 }} className="fade-in">
-          <div className="chip-group-label">Skilled</div><Chips options={SKILLED} value={care} onChange={setCare} />
-          <div className="chip-group-label" style={{ marginTop: 12 }}>Non-skilled</div><Chips options={NONSKILLED} value={care} onChange={setCare} />
+          <div className="chip-group-label">Skilled</div><Chips label="Skilled care" options={SKILLED} value={care} onChange={setCare} />
+          <div className="chip-group-label" style={{ marginTop: 12 }}>Non-skilled</div><Chips label="Non-skilled care" options={NONSKILLED} value={care} onChange={setCare} />
           {care.length > 0 && <div style={{ marginTop: 12 }}><Btn size="sm" variant="link" onClick={() => setCare([])}>Clear care types</Btn></div>}
         </Card>
       )}
