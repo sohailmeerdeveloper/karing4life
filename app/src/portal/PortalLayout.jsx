@@ -105,7 +105,7 @@ function Me() {
   const out = async () => { await signOut(); toast('Signed out', 'See you soon.'); navigate('/'); };
   return (
     <div ref={ref} className="p-pop">
-      <button type="button" className="ib" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen(!open)} data-tip="Account" data-tip-pos="bottom">
+      <button type="button" className="ib" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen(!open)} data-tip="Account menu" data-tip-pos="bottom">
         <Avatar name={profile?.full_name} url={profile?.avatar_url} size="sm" />
       </button>
       {open && (
@@ -154,6 +154,9 @@ export default function PortalLayout() {
       const r = el.getBoundingClientRect(), room = el.hasAttribute('data-tip-wide') ? 140 : 100;
       const edge = r.right > window.innerWidth - room ? 'right' : r.left < room ? 'left' : null;
       if (edge) el.setAttribute('data-tip-edge', edge); else el.removeAttribute('data-tip-edge');
+      // not enough room above (the sticky top bar sits there): open the tooltip below instead
+      const bar = document.querySelector('.p-top')?.getBoundingClientRect().bottom || 0;
+      if (r.top - bar < (el.hasAttribute('data-tip-wide') ? 96 : 48)) el.setAttribute('data-tip-below', ''); else el.removeAttribute('data-tip-below');
     };
     document.addEventListener('pointerover', on);
     document.addEventListener('focusin', on);

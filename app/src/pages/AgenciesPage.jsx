@@ -144,17 +144,17 @@ export default function AgenciesPage() {
             <div className="rule-list" style={{ gridTemplateColumns: '1fr' }}>
               <div className="rule">
                 <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-pin" /></svg></span>
-                <div><h4>One region</h4><p>For example, Hudson Valley.</p></div>
+                <div><h3>One region</h3><p>For example, Hudson Valley.</p></div>
                 <span className="rule-val">$49.99 / mo</span>
               </div>
               <div className="rule">
                 <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-map" /></svg></span>
-                <div><h4>Three regions</h4><p>For example, the Bronx, Manhattan and Queens.</p></div>
+                <div><h3>Three regions</h3><p>For example, the Bronx, Manhattan and Queens.</p></div>
                 <span className="rule-val">$149.97 / mo</span>
               </div>
               <div className="rule">
                 <span className="icon-circle sand"><svg className="i" aria-hidden="true"><use href="#i-globe" /></svg></span>
-                <div><h4>Statewide</h4><p>All 16 regions.</p></div>
+                <div><h3>Statewide</h3><p>All 16 regions.</p></div>
                 <span className="rule-val">$799.84 / mo</span>
               </div>
             </div>

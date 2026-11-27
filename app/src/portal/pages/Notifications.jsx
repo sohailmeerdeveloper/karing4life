@@ -44,7 +44,7 @@ export default function Notifications() {
         {loading ? <div style={{ padding: 18 }}><Skel h={56} n={4} /></div>
           : list.length === 0 ? <Empty icon="bell" title={tab === 'unread' ? 'No unread notifications' : 'Nothing here yet'} body="We’ll let you know when something needs your attention." />
           : <div className="rows">{list.map((n) => (
-            <div key={n.id} className={'row clickable' + (n.read_at ? '' : ' unread')} role="button" tabIndex={0} onClick={() => open(n)} onKeyDown={(e) => e.key === 'Enter' && open(n)} style={{ cursor: 'pointer' }}>
+            <div key={n.id} className={'row clickable notif-row' + (n.read_at ? '' : ' unread')} role="button" tabIndex={0} onClick={() => open(n)} onKeyDown={(e) => e.key === 'Enter' && open(n)} style={{ cursor: 'pointer' }}>
               <span className="stat-ic" style={{ flex: 'none' }}><PIcon name={ICON_OF[n.kind] || 'bell'} /></span>
               <span className="r-main"><span className="r-t">{n.title}</span><span className="r-s">{n.body}</span></span>
               <span className="r-time">{timeAgo(n.created_at)}</span>

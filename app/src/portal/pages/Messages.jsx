@@ -3,23 +3,43 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { supabase, errText } from '../../lib/supabase.js';
 import { toast } from '../../lib/toast.jsx';
 import { usePortal, isUnread, otherOf } from '../context.jsx';
-import { Avatar, Btn, Empty, IconBtn, Modal, PIcon, Field, confirm, fmtDate, timeAgo } from '../ui.jsx';
+import { Avatar, Btn, Empty, IconBtn, Modal, PIcon, Field, confirm, fmtDate, shortName, timeAgo } from '../ui.jsx';
 
 const ROLE_NAME = { caregiver: 'Caregiver', family: 'Family', agency: 'Agency' };
 
-/** Loads display info for a set of member ids: name, avatar, agency business name. */
+/** Loads display info for a set of member ids: name, avatar, agency business name.
+    member_cards() only returns people you have a reason to see, and gives families as
+    "First L." with no town. The table fallback is for databases without qa_round2.sql. */
 export async function loadMembers(ids) {
   const uniq = [...new Set(ids)].filter(Boolean);
   if (!uniq.length) return {};
+  const { data, error } = await supabase.rpc('member_cards', { ids: uniq });
+  if (!error) return Object.fromEntries((data || []).map((m) => [m.id, { ...m, agency: m.business_name || m.logo_url ? { business_name: m.business_name, logo_url: m.logo_url } : null }]));
   const [{ data: ps }, { data: ags }] = await Promise.all([
     supabase.from('profiles').select('id,full_name,avatar_url,town').in('id', uniq),
     supabase.from('agency_profiles').select('user_id,business_name,logo_url').in('user_id', uniq),
   ]);
-  const out = Object.fromEntries((ps || []).map((p) => [p.id, p]));
+  const out = Object.fromEntries((ps || []).map((p) => [p.id, { ...p, short_name: shortName(p.full_name) }]));
   (ags || []).forEach((a) => { if (out[a.user_id]) out[a.user_id].agency = a; });
   return out;
 }
-const display = (m, role) => (role === 'agency' && m?.agency?.business_name) ? m.agency.business_name : m?.full_name || 'Member';
+const ROLE_FALLBACK = { caregiver: 'Caregiver', family: 'Family', agency: 'Agency' };
+/** How a member is named in a given role: agencies by business, families as "First L.",
+    caregivers in full. Never "Member": if the card hasn't loaded, say what they are. */
+export const memberName = (m, role) => (role === 'agency' ? m?.agency?.business_name || m?.full_name
+  : role === 'family' ? m?.short_name || shortName(m?.full_name)
+  : m?.full_name || m?.short_name) || ROLE_FALLBACK[role] || 'Member';
+const display = memberName;
+/** Town shown next to a member: never a family's home town (their post shows its own town). */
+const memberTown = (m, role) => (role === 'family' ? '' : m?.town || '');
+
+/** Turns http(s) links and www. addresses in a message into safe links; everything else stays text. */
+function Linkified({ text }) {
+  const parts = text.split(/((?:https?:\/\/|www\.)[^\s<>"']+[^\s<>"'.,;:!?)\]])/gi);
+  return parts.map((s, i) => (i % 2 === 1
+    ? <a key={i} href={/^www\./i.test(s) ? 'https://' + s : s} target="_blank" rel="noopener noreferrer nofollow ugc">{s}</a>
+    : s));
+}
 
 export function ReportModal({ open, onClose, target, post, conversation }) {
   const { me } = usePortal();
@@ -62,6 +82,7 @@ export default function Messages() {
   const [posts, setPosts] = useState({});
   const [blocked, setBlocked] = useState(new Set());
   const [filter, setFilter] = useState('');
+  const retried = useRef(false);
 
   const loadList = useCallback(async () => {
     const { data, error } = await supabase.from('conversations').select('*').or(`user_a.eq.${me},user_b.eq.${me}`).order('last_message_at', { ascending: false });
@@ -74,6 +95,8 @@ export default function Messages() {
       supabase.from('blocks').select('blocked_id').eq('blocker_id', me),
     ]);
     setMembers(m); setPosts(Object.fromEntries((ps || []).map((p) => [p.id, p]))); setBlocked(new Set((bl || []).map((b) => b.blocked_id)));
+    // a brand-new conversation can arrive before its member card does: try once more
+    if (!retried.current && mine.some((c) => !m[otherOf(c, me).id])) { retried.current = true; setTimeout(() => loadList(), 1500); }
   }, [me, role]);
 
   useEffect(() => { loadList(); }, [loadList]);
@@ -202,7 +225,7 @@ function Thread({ conv, member, post, isBlocked, onBlockChange, onBack, onRead }
         <Avatar name={name} url={member?.agency?.logo_url || member?.avatar_url} square={other.role === 'agency'} />
         <div className="ch-m">
           <strong>{profileLink ? <Link to={profileLink} style={{ color: 'inherit' }}>{name}</Link> : name}</strong>
-          <span>{ROLE_NAME[other.role] || ''}{member?.town ? ' · ' + member.town : ''}</span>
+          <span>{ROLE_NAME[other.role] || ''}{memberTown(member, other.role) ? ' · ' + memberTown(member, other.role) : ''}</span>
         </div>
         {profileLink && <IconBtn icon="user" label="View profile" to={profileLink} className="hide-sm" />}
         <IconBtn icon="flag" label="Report" onClick={() => setReport(true)} />
@@ -225,7 +248,7 @@ function Thread({ conv, member, post, isBlocked, onBlockChange, onBack, onRead }
           return (
             <div key={m.id} style={{ display: 'contents' }}>
               {showDay && <div className="chat-day">{day}</div>}
-              <div className={'msg ' + (mine ? 'out' : 'in') + (m.temp ? ' sending' : '')}>{m.body}</div>
+              <div className={'msg ' + (mine ? 'out' : 'in') + (m.temp ? ' sending' : '')}><Linkified text={m.body} /></div>
               {mine && m.id === lastMine?.id && (
                 <div className="msg-meta out">{new Date(theirRead) >= new Date(m.created_at) ? <><PIcon name="checks" className="seen" />Seen</> : <><PIcon name="check" />Sent {timeAgo(m.created_at)}</>}</div>
               )}

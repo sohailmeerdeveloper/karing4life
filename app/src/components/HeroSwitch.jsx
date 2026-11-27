@@ -3,6 +3,9 @@ import { useAuth } from '../lib/auth.jsx';
 import { useNavigate } from 'react-router-dom';
 import { Icon, CareOptions, RegionOptions } from './bits.jsx';
 import { REDUCED } from '../lib/hooks.js';
+import { toast } from '../lib/toast.jsx';
+
+const ROLE_LABEL = { family: 'a family', caregiver: 'a caregiver', agency: 'an agency', admin: 'an admin' };
 
 const TABS = [
   { key: 'need', icon: 'heart', label: 'I need care' },
@@ -68,16 +71,24 @@ export function HeroSwitch() {
   const tabs = useRef([]);
   const goo = useGoo();
   const navigate = useNavigate();
-  const { user, roles } = useAuth();
+  const { user, profile, roles } = useAuth();
   const select = (i, focus) => { setSel(i); goo.go(i); if (focus) tabs.current[i]?.focus(); };
 
   const submit = (kind) => (e) => {
     e.preventDefault();
     const f = e.currentTarget, care = f.elements.care.value, reg = f.elements.region.value;
     const q = new URLSearchParams(); if (care) q.set('care', care); if (reg) q.set('region', reg);
-    // signed-in members go straight to the matching search in their portal, filters kept
+    // signed-in members go straight to the matching search in their portal, filters kept.
+    // If their profile is still loading, go there anyway: the portal checks the role itself.
     const portal = { need: 'family', hire: 'agency', give: 'caregiver' }[kind];
-    if (user && roles.includes(portal)) { navigate(`/portal/${portal}/${kind === 'give' ? 'posts' : 'find'}` + (q.toString() ? '?' + q : '')); return; }
+    const searchPath = `/portal/${portal}/${kind === 'give' ? 'posts' : 'find'}` + (q.toString() ? '?' + q : '');
+    if (user && (!profile || roles.includes(portal))) { navigate(searchPath); return; }
+    if (user && kind !== 'give') {
+      // signed in, but without this kind of account: say so instead of silently landing elsewhere
+      const what = { family: 'a family account', agency: 'an agency account', caregiver: 'a caregiver account' }[portal];
+      toast.info(`This search needs ${what}`, `You’re signed in as ${roles.map((r) => ROLE_LABEL[r] || r).join(' and ')}. Use your portal to find what you need.`);
+      return;
+    }
     if (kind === 'need') { q.set('role', 'family'); navigate('/join?' + q); }
     else if (kind === 'give') navigate('/requests' + (q.toString() ? '?' + q : ''));
     else { q.set('role', 'agency'); navigate('/join?' + q); }

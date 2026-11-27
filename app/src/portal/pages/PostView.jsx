@@ -4,9 +4,9 @@ import { supabase, q, errText } from '../../lib/supabase.js';
 import { useAsync } from '../../lib/useAsync.js';
 import { toast } from '../../lib/toast.jsx';
 import { usePortal, otherOf } from '../context.jsx';
-import { Avatar, Badge, Btn, Card, CareTags, Empty, IconBtn, Notice, PageHead, PIcon, Progress, ScheduleView, Skel, TrashBtn, confirm, fmtDate, regionName, shortName, timeAgo, daysLeft } from '../ui.jsx';
+import { Avatar, Badge, Btn, Card, CareTags, Empty, IconBtn, Notice, PageHead, PIcon, Progress, ScheduleView, Skel, TrashBtn, confirm, fmtDate, regionName, timeAgo, daysLeft } from '../ui.jsx';
 import { postState } from '../PostCard.jsx';
-import { loadMembers, ReportModal } from './Messages.jsx';
+import { loadMembers, memberName, ReportModal } from './Messages.jsx';
 import StartChat from '../StartChat.jsx';
 
 export default function PostView() {
@@ -37,7 +37,7 @@ export default function PostView() {
   const isAgency = p.kind === 'agency';
   const [st, tone, ic] = postState(p);
   const editable = own && p.status !== 'hidden' && (isAgency || new Date(p.expires_at) > new Date());
-  const authorName = isAgency ? author?.agency?.business_name || author?.full_name : shortName(author?.full_name);
+  const authorName = memberName(author, p.kind);
 
   const setStatus = async (status) => {
     const { error: e } = await supabase.from('posts').update({ status }).eq('id', p.id);
@@ -96,8 +96,8 @@ export default function PostView() {
                   const o = otherOf(c, me), m = members[o.id];
                   return (
                     <Link key={c.id} className="row" to={base + '/messages/' + c.id}>
-                      <Avatar name={m?.full_name} url={m?.avatar_url} size="sm" />
-                      <span className="r-main"><span className="r-t">{m?.full_name || 'Caregiver'}</span><span className="r-s">{c.last_message}</span></span>
+                      <Avatar name={memberName(m, o.role)} url={m?.avatar_url} size="sm" />
+                      <span className="r-main"><span className="r-t">{memberName(m, o.role)}</span><span className="r-s">{c.last_message}</span></span>
                       <span className="r-end">{p.kind === 'family' && <Badge tone={c.counted ? 'line' : 'ok'} tip={c.counted ? 'You reached out, used 1 contact' : 'They messaged first, free'}>{c.counted ? 'Used a contact' : 'Free'}</Badge>}<span className="r-time">{timeAgo(c.last_message_at)}</span></span>
                     </Link>
                   );
@@ -108,7 +108,7 @@ export default function PostView() {
         <div className="stack">
           {!own && (
             <Card title={isAgency ? 'Posted by' : 'Family'} icon={isAgency ? 'building' : 'heart'}>
-              <div className="flex"><Avatar name={authorName} url={isAgency ? author?.agency?.logo_url : author?.avatar_url} square={isAgency} /><div><strong>{authorName}</strong><div className="small muted">{author?.town || regionName(p.region_key)}</div></div></div>
+              <div className="flex"><Avatar name={authorName} url={isAgency ? author?.agency?.logo_url : author?.avatar_url} square={isAgency} /><div><strong>{authorName}</strong><div className="small muted">{isAgency ? author?.town || regionName(p.region_key) : (p.town ? p.town + ' · ' : '') + regionName(p.region_key)}</div></div></div>
               <p className="small muted" style={{ marginTop: 12 }}>{isAgency ? 'Agencies are verified with an EIN and business contact.' : 'The family’s address and phone stay private. Introduce yourself in a message.'}</p>
               <div style={{ marginTop: 14 }}>{convs.length ? <Btn variant="primary" icon="msg" block to={base + '/messages/' + convs[0].id}>Open conversation</Btn> : <Btn variant="success" icon="send" block onClick={() => setChat(true)}>Reply, it’s free</Btn>}</div>
             </Card>

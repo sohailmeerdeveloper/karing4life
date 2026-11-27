@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon, LogoImg } from './bits.jsx';
-import { useScrolled } from '../lib/hooks.js';
+import { useFocusTrap, useScrolled } from '../lib/hooks.js';
 import { useAuth } from '../lib/auth.jsx';
 
 const NAV_OF = { how: 'how', requests: 'caregivers', families: 'families', caregivers: 'caregivers', membership: 'caregivers', agencies: 'agencies', about: 'about', contact: 'contact' };
@@ -128,17 +128,19 @@ const MM = [
 export function MobileMenu({ open, onClose }) {
   const { pathname } = useLocation();
   const closeRef = useRef(null);
+  const menuRef = useRef(null);
   const { user } = useAuth() || {};
+  // Tab stays inside the open menu, Esc closes it, and focus returns to the ☰ button
+  useFocusTrap(menuRef, open, onClose);
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
     if (open) setTimeout(() => closeRef.current?.focus(), 50);
-    const onKey = (e) => { if (e.key === 'Escape' && open) onClose(); };
     const onResize = () => { if (window.innerWidth > 1024 && open) onClose(); };
-    document.addEventListener('keydown', onKey); window.addEventListener('resize', onResize);
-    return () => { document.removeEventListener('keydown', onKey); window.removeEventListener('resize', onResize); };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, [open, onClose]);
   return (
-    <div className={'mobile-menu' + (open ? ' open' : '')} id="mobileMenu" role="dialog" aria-modal="true" aria-label="Menu">
+    <div ref={menuRef} className={'mobile-menu' + (open ? ' open' : '')} id="mobileMenu" role="dialog" aria-modal="true" aria-label="Menu" inert={!open}>
       <div className="mm-top">
         <a className="brand" href="/" aria-label="Karing4Life home"><LogoImg width="44" height="44" style={{ width: 44, height: 44 }} /><span className="brand-text"><span className="brand-name">Karing<b>4</b>Life</span></span></a>
         <button ref={closeRef} className="menu-toggle" aria-label="Close menu" style={{ display: 'inline-flex' }} onClick={onClose}><Icon name="x" /></button>

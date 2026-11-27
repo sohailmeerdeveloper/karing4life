@@ -7,7 +7,7 @@ import { usePortal, otherOf, isUnread } from '../context.jsx';
 import { Avatar, Btn, Card, Empty, Notice, PIcon, Progress, Skel, Stat, daysLeft, fmtDate, timeAgo } from '../ui.jsx';
 import PostCard from '../PostCard.jsx';
 import { completeness } from '../caregiver.jsx';
-import { loadMembers } from './Messages.jsx';
+import { loadMembers, memberName } from './Messages.jsx';
 
 export const greet = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; };
 export const first = (n = '') => n.split(' ')[0] || 'there';
@@ -17,11 +17,11 @@ export function RecentChats({ convs, members, me, base, empty }) {
   return (
     <div className="rows">{convs.map((c) => {
       const o = otherOf(c, me), m = members[o.id];
-      const name = o.role === 'agency' ? m?.agency?.business_name || m?.full_name : m?.full_name;
+      const name = memberName(m, o.role);
       return (
         <Link key={c.id} className={'row' + (isUnread(c, me) ? ' unread' : '')} to={base + '/messages/' + c.id}>
           <Avatar name={name} url={m?.agency?.logo_url || m?.avatar_url} size="sm" square={o.role === 'agency'} />
-          <span className="r-main"><span className="r-t">{name || 'Member'}</span><span className="r-s">{c.last_message}</span></span>
+          <span className="r-main"><span className="r-t">{name}</span><span className="r-s">{c.last_message}</span></span>
           <span className="r-time">{timeAgo(c.last_message_at)}</span>
         </Link>
       );
@@ -100,7 +100,7 @@ export default function CaregiverHome() {
             {loading ? <div style={{ padding: 18 }}><Skel h={50} n={3} /></div> : <RecentChats convs={data.convs} members={data.members} me={me} base={base} empty="Reply to a post and the conversation shows up here." />}
           </Card>
           <Card title="Profile checklist" icon="checkCircle">
-            <Progress value={comp.pct} max={100} />
+            <Progress value={comp.pct} max={100} label="Profile strength" />
             <div className="checklist" style={{ marginTop: 14 }}>
               {[['Complete your profile', 'Headline, bio, care types', '/profile', comp.pct >= 80],
                 ['Choose your regions', 'Where you’re willing to work', '/regions', cg.service_regions?.length > 0],

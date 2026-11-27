@@ -11,7 +11,7 @@ function Panel({ r, onPick }) {
       <aside className="region-panel" aria-live="polite" aria-label="Region details">
         <div className="rp-head rp-fade" key="none">
           <div className="rp-group"><span className="badge"><Icon name="map" className="i-sm" />New York State</span></div>
-          <h3 className="rp-name">Choose a region</h3>
+          <h2 className="rp-name">Choose a region</h2>
           <p className="rp-desc">Sixteen regions, from Montauk to Chautauqua. Select one on the map, or open the NYC &amp; Long Island view for the five boroughs.</p>
         </div>
         <div className="rp-body rp-fade">
@@ -30,7 +30,7 @@ function Panel({ r, onPick }) {
     <aside className="region-panel" aria-live="polite" aria-label="Region details">
       <div className="rp-head rp-fade" key={r.key}>
         <div className="rp-group"><span className="badge badge-sand"><Icon name="pin" className="i-sm" />{r.group}</span><span className="badge badge-line">{nCounties(r)}</span></div>
-        <h3 className="rp-name">{r.name}</h3>
+        <h2 className="rp-name">{r.name}</h2>
         <p className="rp-desc">{r.desc}</p>
       </div>
       <div className="rp-body rp-fade" key={r.key + 'b'}>

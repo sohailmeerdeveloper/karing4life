@@ -13,7 +13,7 @@
 .pricing-grid .pc-flag { position: absolute; top: -13px; left: var(--s6); height: 26px; padding: 0 12px; border-radius: 999px; background: var(--rust-ink); color: #fff; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; }
 .pc-head { display: flex; align-items: center; gap: var(--s3); }
 .calc { margin-top: var(--s7); padding: var(--s6); border-radius: var(--radius-xl); background: var(--paper); border: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: var(--s6); align-items: center; }
-.calc h3 { font-size: 22px; }
+.calc h2, .calc h3 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
 .calc .range { width: 100%; accent-color: var(--olive); margin-top: var(--s4); }
 .calc .total { text-align: center; padding: var(--s5); border-radius: var(--radius-lg); background: var(--deep); color: var(--on-deep); }
 .calc .total strong { display: block; font-size: 40px; color: var(--on-deep); letter-spacing: -0.03em; }
@@ -46,7 +46,7 @@
 .legal-tabs { display: flex; gap: 6px; margin-bottom: var(--s5); flex-wrap: wrap; }
 .prose { max-width: 760px; color: var(--ink-2); font-size: 16px; line-height: 1.75; }
 .prose h2 { font-size: 22px; margin: var(--s7) 0 var(--s3); scroll-margin-top: calc(var(--hdr) + 24px); }
-.prose h2:first-child { margin-top: 0; }
+.prose > .legal-note + div > h2:first-child, .prose > h2:first-child { margin-top: 0; }
 .prose p + p { margin-top: var(--s3); }
 .prose ul { padding-left: 20px; margin: var(--s3) 0; display: grid; gap: 6px; }
 .legal-note { display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--radius-lg); background: var(--sand-50); border: 1px solid var(--sand-100); font-size: 14px; color: var(--ink-2); margin-bottom: var(--s6); }
@@ -82,3 +82,7 @@
 .xm { width: min(560px, 100%); max-height: calc(100svh - 40px); overflow-y: auto; border-radius: 22px; background: var(--paper); padding: var(--s6); box-shadow: var(--shadow-lg); }
 .xm h2 { font-size: 24px; margin-bottom: var(--s4); }
 @media (max-width: 640px) { .xm-back { place-items: end stretch; padding: 0; } .xm { border-radius: 22px 22px 0 0; max-height: 92svh; } }
+.xm-sm { width: min(440px, 100%); }
+.xm-sm h2 { font-size: 20px; margin-bottom: 0; }
+.btn-danger { background: #B8402B; color: #fff; }
+.btn-danger:hover { background: #9E3524; color: #fff; }

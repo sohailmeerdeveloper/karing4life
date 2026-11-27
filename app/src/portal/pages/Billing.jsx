@@ -47,7 +47,9 @@ export default function Billing() {
   }, [me, role]);
 
   const trial = role === 'caregiver' ? daysLeft(extra.caregiver?.trial_ends_at) : 0;
-  const monthly = (data?.subs || []).length * each;
+  // courtesy regions (granted by our team) are free, so they don't count toward the monthly total
+  const paid = (data?.subs || []).filter((s) => s.source !== 'admin');
+  const monthly = paid.length * each;
   const focusPost = params.get('post');
 
   return (
@@ -59,7 +61,8 @@ export default function Billing() {
       {role !== 'family' && (
         <div className="stats n3">
           <Stat icon="map" label="Active regions" value={loading ? '…' : data.subs.length} to={base + '/regions'} />
-          <Stat icon="dollar" label="Monthly total" value={loading ? '…' : '$' + monthly.toFixed(2)} tone="sand" />
+          <Stat icon="dollar" label="Monthly total" value={loading ? '…' : '$' + monthly.toFixed(2)} tone="sand"
+            hint={loading ? undefined : data.subs.length > paid.length ? `${data.subs.length - paid.length} courtesy ${data.subs.length - paid.length === 1 ? 'region' : 'regions'} free` : undefined} />
           {role === 'caregiver'
             ? <Stat icon="hourglass" label={trial > 0 ? 'Free trial days left' : 'Free trial'} value={trial > 0 ? trial : 'Ended'} tone={trial > 0 ? 'ok' : 'ink'} hint={trial > 0 ? 'until ' + fmtDate(extra.caregiver?.trial_ends_at) : undefined} />
             : <Stat icon="cal" label="Next renewal" value={loading || !data.subs.length ? '—' : fmtDate(data.subs.map((s) => s.current_period_end).filter(Boolean).sort()[0], { month: 'short', day: 'numeric' })} tone="ink" />}
@@ -98,9 +101,11 @@ export default function Billing() {
                   <thead><tr><th>Region</th><th>Status</th><th>Renews</th><th className="num">Price</th></tr></thead>
                   <tbody>{data.subs.map((s) => (
                     <tr key={s.id}>
-                      <td className="first"><strong>{regionName(s.region_key)}</strong>{s.source === 'admin' && <span className="small muted"> · courtesy access</span>}</td>
-                      <td data-l="Status"><Badge tone={s.status === 'active' ? 'ok' : 'warn'} icon={s.status === 'active' ? 'check' : 'alert'}>{s.status === 'active' ? 'Active' : 'Payment failed'}</Badge></td>
-                      <td data-l="Renews">{fmtDate(s.current_period_end)}</td>
+                      <td className="first"><strong>{regionName(s.region_key)}</strong></td>
+                      <td data-l="Status">{s.source === 'admin'
+                        ? <Badge tone="sand" icon="sparkle" tip="Free access granted by the Karing4Life team">Courtesy</Badge>
+                        : <Badge tone={s.status === 'active' ? 'ok' : 'warn'} icon={s.status === 'active' ? 'check' : 'alert'}>{s.status === 'active' ? 'Active' : 'Payment failed'}</Badge>}</td>
+                      <td data-l={s.source === 'admin' ? 'Until' : 'Renews'}>{fmtDate(s.current_period_end)}</td>
                       <td data-l="Price" className="num money">{s.source === 'admin' ? '$0.00' : '$' + each.toFixed(2)}</td>
                     </tr>
                   ))}</tbody>

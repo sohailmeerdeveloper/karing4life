@@ -3,12 +3,27 @@ import { useTitle, useQuery, store, REDUCED } from '../lib/hooks.js';
 import { CtaBand, Icon } from '../components/bits.jsx';
 import { GROUPS, REGIONS, R, PRICE_CG, money } from '../data/data.js';
 import { toast } from '../lib/toast.jsx';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/auth.jsx';
+import { PRELAUNCH } from '../lib/config.js';
+import { openPrelaunch } from '../lib/prelaunch.js';
 
 function MemPicker() {
   const params = useQuery();
   const [sel, setSel] = useState(() => (store('k4l-regions') || []).filter((k) => R[k]));
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(() => store('k4l-trial-code') || '');
   const [trialText, setTrialText] = useState("Your first 14 days include every region, free. You won't be charged until the trial ends.");
+  const navigate = useNavigate();
+  const { user, roles } = useAuth();
+  // The trial starts with a caregiver account, so this button leads there instead of
+  // claiming a trial has started. Pre-launch, accounts aren't open yet: show the popup.
+  const startTrial = () => {
+    if (user && roles.includes('caregiver')) { navigate('/portal/caregiver/regions'); return; }
+    if (user) { toast.info('The free trial is for caregiver accounts', 'Your account doesn’t include a caregiver profile. Contact us if you’d like one.'); return; }
+    if (PRELAUNCH) { openPrelaunch('signup'); return; }
+    const first = REGIONS.find((r) => sel.includes(r.key));
+    navigate('/join?role=caregiver' + (first ? '&region=' + first.key : ''));
+  };
   useEffect(() => { store('k4l-regions', sel); }, [sel]);
   useEffect(() => {
     if (params.region && R[params.region]) {
@@ -25,13 +40,13 @@ function MemPicker() {
           const keys = REGIONS.filter((r) => r.g === g).map((r) => r.key), all = keys.every((k) => sel.includes(k));
           return (
             <div className="mem-group" key={g}>
-              <div className="mem-group-head"><h3>{GROUPS[g]}</h3><button type="button" onClick={() => setSel((s) => all ? s.filter((k) => !keys.includes(k)) : [...new Set([...s, ...keys])])}>{all ? 'Remove all' : 'Add all ' + keys.length}</button></div>
+              <div className="mem-group-head"><h2>{GROUPS[g]}</h2><button type="button" onClick={() => setSel((s) => all ? s.filter((k) => !keys.includes(k)) : [...new Set([...s, ...keys])])}>{all ? 'Remove all' : 'Add all ' + keys.length}</button></div>
               <div className="mem-cards">
                 {REGIONS.filter((r) => r.g === g).map((r) => {
                   const on = sel.includes(r.key);
                   return (
                     <article className={'mem-card' + (on ? ' on' : '')} key={r.key} id={'mem-' + r.key}>
-                      <div className="mc-top"><div><h4>{r.name.replace(/ Region$/, '')} Region Access</h4><div className="mc-counties">{r.countyChips.join(', ')}</div></div><div className="mc-price">$8.99 <small>/ mo</small></div></div>
+                      <div className="mc-top"><div><h3>{r.name.replace(/ Region$/, '')} Region Access</h3><div className="mc-counties">{r.countyChips.join(', ')}</div></div><div className="mc-price">$8.99 <small>/ mo</small></div></div>
                       <p>Open and reply to every family care request posted in the {r.name} region. Cancel anytime, and add more regions whenever you like.</p>
                       <button className="mem-toggle" type="button" aria-pressed={on} aria-label={(on ? 'Remove ' : 'Add ') + r.name + ' region'} onClick={() => toggle(r.key)}><Icon name={on ? 'check' : 'plus'} /><span>{on ? 'Added' : 'Add region'}</span></button>
                     </article>
@@ -55,15 +70,17 @@ function MemPicker() {
           <div className="sum-trial"><Icon name="sparkle" /><span>{trialText}</span></div>
           <form className="trial-code" onSubmit={(e) => {
             e.preventDefault(); const v = code.trim();
-            if (!v) { toast('Enter a trial code', 'Codes look like K4L-TRIAL.'); return; }
-            setTrialText('Trial code ' + v.toUpperCase() + ' applied: every region is free for 14 days.'); toast('Trial code applied', 'Every region is free for 14 days.');
+            if (!v) { toast.info('Enter a trial code', 'Codes look like K4L-TRIAL.'); return; }
+            // codes are checked at checkout, so don't claim one is valid here
+            store('k4l-trial-code', v.toUpperCase());
+            setTrialText('Code ' + v.toUpperCase() + ' saved. We’ll check it when you check out. Every new caregiver gets 14 days of every region free either way.');
+            toast.info('Code saved', 'We’ll check it when you check out.');
           }}>
             <label className="sr-only" htmlFor="trialCode">Trial code</label>
             <input className="input" id="trialCode" placeholder="Trial code (optional)" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} />
             <button className="btn btn-ghost btn-sm" type="submit">Apply</button>
           </form>
-          <button className="btn btn-accent btn-block" style={{ marginTop: 16 }} type="button"
-            onClick={() => toast('14-day trial started', n ? `After the trial you’ll keep ${n} ${n === 1 ? 'region' : 'regions'} for ${money(n * PRICE_CG)} a month.` : 'You have every region for 14 days. Pick the ones to keep any time.')}>Start 14-day free trial</button>
+          <button className="btn btn-accent btn-block" style={{ marginTop: 16 }} type="button" onClick={startTrial}>Start 14-day free trial</button>
           <button className="btn btn-ghost btn-block btn-sm" style={{ marginTop: 8 }} type="button" onClick={() => setSel(n === REGIONS.length ? [] : REGIONS.map((r) => r.key))}>{n === REGIONS.length ? 'Clear all regions' : 'Add all 16 regions'}</button>
         </div>
       </aside>

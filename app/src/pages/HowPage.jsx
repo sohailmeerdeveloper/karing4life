@@ -66,18 +66,18 @@ export default function HowPage() {
           <div className="rule-list">
             <div className="rule reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-cal" /></svg></span>
-              <div><h4>One free request every 2 weeks</h4><p>Each family can post a new care request once every two weeks, at no cost.</p></div>
+              <div><h3>One free request every 2 weeks</h3><p>Each family can post a new care request once every two weeks, at no cost.</p></div>
               <span className="rule-val">Free</span>
             </div>
             <div className="rule reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-users" /></svg></span>
-              <div><h4>10 free contacts per post</h4><p>A family can start conversations with up to 10 caregivers for every request.</p></div>
+              <div><h3>10 free contacts per post</h3><p>A family can start conversations with up to 10 caregivers for every request.</p></div>
               <span className="rule-val">10 free</span>
             </div>
             <div className="rule reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-plus" /></svg></span>
               <div>
-                <h4>Need more? 10 more for $8.99</h4>
+                <h3>Need more? 10 more for $8.99</h3>
                 <p>If you'd like a wider circle, add another 10 contacts to that post for a one-time $8.99.</p>
               </div>
               <span className="rule-val">$8.99</span>
@@ -85,7 +85,7 @@ export default function HowPage() {
             <div className="rule reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-msg" /></svg></span>
               <div>
-                <h4>Replies are always free</h4>
+                <h3>Replies are always free</h3>
                 <p>When a caregiver or nurse messages a family, it never costs the family anything and never counts toward the 10.</p>
               </div>
               <span className="rule-val">Free</span>
@@ -93,14 +93,14 @@ export default function HowPage() {
             <div className="rule reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-clock" /></svg></span>
               <div>
-                <h4>Available or Fill-in</h4>
+                <h3>Available or Fill-in</h3>
                 <p>Caregivers choose a status. <strong>Available</strong> means open for regular work. <strong>Fill-in</strong> means open for single shifts or a few days.</p>
               </div>
             </div>
             <div className="rule reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-unlock" /></svg></span>
               <div>
-                <h4>Region access</h4>
+                <h3>Region access</h3>
                 <p>Caregivers can see that a request exists in any region, but details stay blurred until they unlock that region.</p>
               </div>
               <span className="rule-val">$8.99/mo</span>
@@ -108,14 +108,14 @@ export default function HowPage() {
             <div className="rule reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-lock" /></svg></span>
               <div>
-                <h4>Messaging only</h4>
+                <h3>Messaging only</h3>
                 <p>No phone numbers or addresses are ever published. First contact always happens in private on-site messages.</p>
               </div>
             </div>
             <div className="rule reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-eye-off" /></svg></span>
               <div>
-                <h4>Agencies can't see family requests</h4>
+                <h3>Agencies can't see family requests</h3>
                 <p>Agency and facility accounts recruit caregivers only. Family requests are hidden from them completely.</p>
               </div>
             </div>
@@ -145,21 +145,21 @@ export default function HowPage() {
             <div className="point reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-eye-off" /></svg></span>
               <div>
-                <h4>Locked until a region is unlocked</h4>
+                <h3>Locked until a region is unlocked</h3>
                 <p>A caregiver who hasn't unlocked a region sees only that a request exists there, never the details.</p>
               </div>
             </div>
             <div className="point reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-building" /></svg></span>
               <div>
-                <h4>Agencies don't see families at all</h4>
+                <h3>Agencies don't see families at all</h3>
                 <p>Agency accounts can post jobs and message caregivers, but family requests never appear for them.</p>
               </div>
             </div>
             <div className="point reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-msg" /></svg></span>
               <div>
-                <h4>You decide what to share</h4>
+                <h3>You decide what to share</h3>
                 <p>Every first conversation happens in private messages on the site. You choose when to share contact details, and with whom.</p>
               </div>
             </div>

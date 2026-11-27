@@ -11,7 +11,7 @@ export function postState(p) {
 /** One care request / job post. `author` = member info, `to` = link, `children` = footer actions. */
 export default function PostCard({ p, author, to, children, showState, replied }) {
   const isAgency = p.kind === 'agency';
-  const name = isAgency ? author?.agency?.business_name || author?.full_name : shortName(author?.full_name);
+  const name = isAgency ? author?.agency?.business_name || author?.full_name : author?.short_name || shortName(author?.full_name);
   const [st, tone, ic] = postState(p);
   const head = (
     <>

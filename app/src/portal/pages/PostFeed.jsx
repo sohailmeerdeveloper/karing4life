@@ -7,7 +7,7 @@ import { Btn, Card, Chips, Empty, Notice, PageHead, PIcon, Seg, Skel, regionName
 import PostCard from '../PostCard.jsx';
 import { loadMembers } from './Messages.jsx';
 import { SKILLED, NONSKILLED } from '../caregiver.jsx';
-import { RegionOptions } from '../../components/bits.jsx';
+import { REGIONS } from '../../data/data.js';
 
 /** Caregiver "Find work": open care requests + job posts in regions they can access. */
 export default function PostFeed() {
@@ -52,7 +52,14 @@ export default function PostFeed() {
       {locked.length > 0 && <Notice tone="warn" icon="lock" action={<Btn size="sm" variant="accent" to={base + '/regions'}>Unlock</Btn>}>Posts in <strong>{locked.map(regionName).join(', ')}</strong> are locked. Subscribe to see them.</Notice>}
       <div className="toolbar" style={{ marginTop: locked.length ? 16 : 0 }}>
         <div className="pin-ic"><PIcon name="search" /><input className="pin" placeholder="Search posts, towns…" value={text} onChange={(e) => setText(e.target.value)} aria-label="Search posts" /></div>
-        <select className="psel" value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Region"><RegionOptions any="All my regions" /></select>
+        <select className="psel" value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Region">
+          <option value="">All my regions</option>
+          {/* only regions you can see posts in; the rest are listed as locked (manage them in Regions) */}
+          <optgroup label="Your regions">{REGIONS.filter((r) => data?.access?.includes(r.key)).map((r) => <option key={r.key} value={r.key}>{r.name}</option>)}</optgroup>
+          {data && REGIONS.some((r) => !data.access.includes(r.key)) && (
+            <optgroup label="Locked · unlock in Regions">{REGIONS.filter((r) => !data.access.includes(r.key)).map((r) => <option key={r.key} value={r.key} disabled>{r.name} (locked)</option>)}</optgroup>
+          )}
+        </select>
         <select className="psel" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort"><option value="new">Newest first</option><option value="match">Best match for me</option></select>
         <Btn variant={care.length ? 'soft' : 'ghost'} icon="sliders" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters}>Care types{care.length ? ` (${care.length})` : ''}</Btn>
       </div>

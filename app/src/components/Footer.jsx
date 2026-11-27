@@ -25,11 +25,11 @@ export function Footer() {
             </div>
             <div className="footer-cols">
               <div className="footer-col">
-                <h4>Families</h4>
+                <h2>Families</h2>
                 <ul><li><a href="/families">For families</a></li><li><a href="/join?role=family">Post a care request</a></li><li><a href="/how?aud=families">How it works</a></li><li><a href="/kommunity">Kommunity Korner</a></li></ul>
               </div>
               <div className="footer-col">
-                <h4>Caregivers</h4>
+                <h2>Caregivers</h2>
                 <ul>
                   <li><a href="/caregivers">Caregivers &amp; nurses</a></li>
                   <li><a href="/requests">Care requests</a></li>
@@ -38,11 +38,11 @@ export function Footer() {
                 </ul>
               </div>
               <div className="footer-col">
-                <h4>Agencies</h4>
+                <h2>Agencies</h2>
                 <ul><li><a href="/agencies">For agencies</a></li><li><a href="/agencies?s=pricing">Agency Access</a></li><li><a href="/join?role=agency">Create a profile</a></li></ul>
               </div>
               <div className="footer-col">
-                <h4>Company</h4>
+                <h2>Company</h2>
                 <ul>
                   <li><a href="/about">About</a></li>
                   <li><a href="/pricing">Pricing</a></li>

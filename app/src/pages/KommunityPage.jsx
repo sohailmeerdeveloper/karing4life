@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useTitle } from '../lib/hooks.js';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useFocusTrap, useTitle } from '../lib/hooks.js';
 import { Icon, RegionOptions } from '../components/bits.jsx';
 import { supabase, errText } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
@@ -15,7 +15,18 @@ function Thread({ post, user, onCount }) {
   const [items, setItems] = useState(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
-  useEffect(() => { supabase.rpc('kk_thread', { pid: post.id }).then(({ data }) => setItems(data || [])); }, [post.id]);
+  // new comments from others show up while the thread is open (every 15 s and when the tab regains focus)
+  useEffect(() => {
+    let live = true;
+    const load = () => supabase.rpc('kk_thread', { pid: post.id }).then(({ data, error }) => {
+      if (!live || error) return;
+      setItems((xs) => { if (xs && xs.length !== (data || []).length) onCount((data || []).length); return data || []; });
+    });
+    load();
+    const t = setInterval(() => { if (document.visibilityState === 'visible') load(); }, 15000);
+    window.addEventListener('focus', load);
+    return () => { live = false; clearInterval(t); window.removeEventListener('focus', load); };
+  }, [post.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const send = async (e) => {
     e.preventDefault();
     if (!text.trim()) return;
@@ -35,7 +46,25 @@ function Thread({ post, user, onCount }) {
           <input id={'c' + post.id} className="input" maxLength={1000} placeholder="Ask about it or say thanks…" value={text} onChange={(e) => setText(e.target.value)} />
           <button className="btn btn-primary btn-sm" style={{ '--bh': '44px' }} disabled={busy || !text.trim()} type="submit">Post</button>
         </form>
-      ) : <a className="small" href="/signin?next=/portal" style={{ fontWeight: 700 }}>Sign in to comment</a>}
+      ) : <a className="small" href="/signin?next=/kommunity" style={{ fontWeight: 700 }}>Sign in to comment</a>}
+    </div>
+  );
+}
+
+/** "Remove this item?" — same wording and look as the portal's delete confirmations. */
+function ConfirmRemove({ item, onCancel, onConfirm }) {
+  const box = useRef(null);
+  useFocusTrap(box, true, onCancel);
+  return (
+    <div className="xm-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className="xm xm-sm" ref={box} role="alertdialog" aria-modal="true" aria-labelledby="kk-rm-t" aria-describedby="kk-rm-b">
+        <h2 id="kk-rm-t">Remove “{item.title}”?</h2>
+        <p id="kk-rm-b" className="small" style={{ color: 'var(--ink-2)', marginTop: 8 }}>It disappears from the Korner for everyone, with its comments. This can’t be undone.</p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
+          <button type="button" className="btn btn-ghost" onClick={onCancel} autoFocus>Cancel</button>
+          <button type="button" className="btn btn-danger" onClick={onConfirm}>Remove</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -50,6 +79,7 @@ export default function KommunityPage() {
   const [openId, setOpenId] = useState(null);
   const [form, setForm] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [removing, setRemoving] = useState(null);
   const load = () => supabase.rpc('kk_feed').then(({ data, error }) => { if (error) toast.error('Couldn’t load the Korner', errText(error)); setItems(data || []); });
   useEffect(() => { load(); }, []);
   const list = useMemo(() => (items || []).filter((p) => (!cat || p.category === cat) && (!region || p.region_key === region) && (!text || (p.title + ' ' + p.body).toLowerCase().includes(text.toLowerCase()))), [items, cat, region, text]);
@@ -64,6 +94,7 @@ export default function KommunityPage() {
     toast('Shared with the Korner', 'Neighbors can now see and comment on it.'); setForm(null); load();
   };
   const mine = async (p, action) => {
+    setRemoving(null);
     const r = action === 'delete' ? await supabase.from('kk_posts').delete().eq('id', p.id) : await supabase.from('kk_posts').update({ status: p.status === 'claimed' ? 'open' : 'claimed' }).eq('id', p.id);
     if (r.error) { toast.error('Couldn’t update', errText(r.error)); return; }
     toast(action === 'delete' ? 'Removed' : p.status === 'claimed' ? 'Marked available' : 'Marked as claimed'); load();
@@ -89,11 +120,11 @@ export default function KommunityPage() {
           <label className="sr-only" htmlFor="kkr">Region</label>
           <select id="kkr" className="select" value={region} onChange={(e) => setRegion(e.target.value)} style={{ width: 'auto' }}><RegionOptions any="All regions" /></select>
           {user ? <button className="btn btn-accent" onClick={() => setForm({ title: '', body: '', category: 'Supplies', condition: 'Unopened', region_key: '' })}><Icon name="plus" />Share an item</button>
-            : <a className="btn btn-accent" href="/signin?next=/portal"><Icon name="plus" />Sign in to share</a>}
+            : <a className="btn btn-accent" href="/signin?next=/kommunity"><Icon name="plus" />Sign in to share</a>}
         </div>
         {items === null ? <div className="kk-grid">{[1, 2, 3].map((i) => <div key={i} className="kk-card" style={{ height: 220, opacity: .5 }} />)}</div>
           : list.length === 0 ? <div className="kk-card" style={{ alignItems: 'center', textAlign: 'center', padding: 48 }}><span className="kk-ic"><Icon name="sparkle" /></span><h3>Nothing here yet</h3><p>Be the first to share something a neighbor could use.</p></div>
-          : <div className="kk-grid">{list.map((p) => (
+          : <><h2 className="sr-only">Shared items</h2><div className="kk-grid">{list.map((p) => (
             <article key={p.id} className="kk-card">
               <div className="flex" style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
                 <span className="kk-ic"><Icon name={CAT_ICON[p.category] || 'sparkle'} /></span>
@@ -109,15 +140,16 @@ export default function KommunityPage() {
               </div>
               <div className="kk-foot">
                 <button className="link-btn" onClick={() => setOpenId(openId === p.id ? null : p.id)} aria-expanded={openId === p.id}><Icon name="msg" /> {p.comments} comment{p.comments === 1 ? '' : 's'}</button>
-                {user?.id === p.author_id && <span style={{ display: 'flex', gap: 8 }}>
+                {(p.mine ?? (!!user && user.id === p.author_id)) && <span style={{ display: 'flex', gap: 8 }}>
                   <button className="link-btn" onClick={() => mine(p, 'claim')}>{p.status === 'claimed' ? 'Mark available' : 'Mark claimed'}</button>
-                  <button className="link-btn" style={{ color: '#B8402B' }} onClick={() => mine(p, 'delete')}>Remove</button>
+                  <button className="link-btn" style={{ color: '#B8402B' }} onClick={() => setRemoving(p)}>Remove</button>
                 </span>}
               </div>
               {openId === p.id && <Thread post={p} user={user} onCount={(n) => setItems((xs) => xs.map((x) => (x.id === p.id ? { ...x, comments: n } : x)))} />}
             </article>
-          ))}</div>}
+          ))}</div></>}
       </div>
+      {removing && <ConfirmRemove item={removing} onCancel={() => setRemoving(null)} onConfirm={() => mine(removing, 'delete')} />}
       {form && (
         <div className="xm-back" onMouseDown={(e) => { if (e.target === e.currentTarget) setForm(null); }}>
           <form className="xm" onSubmit={share} role="dialog" aria-modal="true" aria-label="Share an item">

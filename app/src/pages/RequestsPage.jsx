@@ -72,8 +72,15 @@ export default function RequestsPage() {
   const [qDraft, setQDraft] = useState('');
   const [open, setOpen] = useState({ skilled: true, nonskilled: true });
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const listRef = useRef(null), countRef = useRef(null);
+  const listRef = useRef(null), countRef = useRef(null), toggleRef = useRef(null);
   const set = (patch) => setF((s) => ({ ...s, ...patch }));
+  // phones: Esc closes the open filter panel and returns focus to the Filters button
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') { setFiltersOpen(false); toggleRef.current?.focus(); } };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [filtersOpen]);
 
   // deep links: /requests?care=rn,lpn&region=suffolk&q=…
   useEffect(() => {
@@ -208,7 +215,7 @@ export default function RequestsPage() {
             <div className="results-head">
               <p className="count" ref={countRef} aria-live="polite">{!rows ? <>Loading requests…</> : list.length ? <>Showing 1–{list.length} of {list.length} <span>{list.length === 1 ? 'result' : 'results'}</span></> : <>No results <span>for these filters</span></>}</p>
               <div className="rh-actions">
-                <button className="btn btn-ghost btn-sm filters-toggle" aria-expanded={filtersOpen} aria-controls="filters" onClick={() => setFiltersOpen(!filtersOpen)}><Icon name="filter" />Filters</button>
+                <button ref={toggleRef} className="btn btn-ghost btn-sm filters-toggle" aria-expanded={filtersOpen} aria-controls="filters" onClick={() => setFiltersOpen(!filtersOpen)}><Icon name="filter" />Filters</button>
                 <div className="sort">
                   <label htmlFor="sortBy">Sort by</label>
                   <select className="select" id="sortBy" value={f.sort} onChange={(e) => set({ sort: e.target.value })}><option value="new">Newest first</option><option value="old">Oldest first</option><option value="start">Start date</option></select>

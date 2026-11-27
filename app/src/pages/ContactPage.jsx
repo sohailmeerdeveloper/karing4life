@@ -97,13 +97,13 @@ export default function ContactPage() {
               <div className="point">
                 <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-user-plus" /></svg></span>
                 <div>
-                  <h4>Looking to join?</h4>
+                  <h3>Looking to join?</h3>
                   <p>Families can <a href="/join?role=family">post a care request</a> right away. Caregivers and agencies can <a href="/join">create a profile</a> in about two minutes.</p>
                 </div>
               </div>
               <div className="point">
                 <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-sparkle" /></svg></span>
-                <div><h4>Press or partnerships?</h4><p>Same address. Mention it in the subject line so it reaches the right person.</p></div>
+                <div><h3>Press or partnerships?</h3><p>Same address. Mention it in the subject line so it reaches the right person.</p></div>
               </div>
             </div>
           </div>

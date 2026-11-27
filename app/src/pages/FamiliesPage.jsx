@@ -126,21 +126,21 @@ export default function FamiliesPage() {
             <div className="point reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-msg" /></svg></span>
               <div>
-                <h4>They reply to you</h4>
+                <h3>They reply to you</h3>
                 <p>Only members who've unlocked your region can read your request and reply, and every conversation starts privately on the site. Share contact details only when you're ready.</p>
               </div>
             </div>
             <div className="point reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-shield" /></svg></span>
               <div>
-                <h4>Every caregiver is reviewed</h4>
+                <h3>Every caregiver is reviewed</h3>
                 <p>Credentials and identity are checked before anyone can reply to you, so the people you hear from have already been screened.</p>
               </div>
             </div>
             <div className="point reveal">
               <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-info" /></svg></span>
               <div>
-                <h4>You choose who you hire</h4>
+                <h3>You choose who you hire</h3>
                 <p>We connect you with verified caregivers. You interview, choose and agree on terms with your caregiver directly.</p>
               </div>
             </div>
@@ -158,19 +158,19 @@ export default function FamiliesPage() {
             <div className="points" style={{ marginTop: '32px' }}>
               <div className="point">
                 <span className="icon-square"><svg className="i" aria-hidden="true"><use href="#i-heart" /></svg></span>
-                <div><h4>Type of care</h4><p>Tick any mix of skilled and non-skilled care, from RN visits to companionship.</p></div>
+                <div><h3>Type of care</h3><p>Tick any mix of skilled and non-skilled care, from RN visits to companionship.</p></div>
               </div>
               <div className="point">
                 <span className="icon-square"><svg className="i" aria-hidden="true"><use href="#i-cal" /></svg></span>
-                <div><h4>Schedule</h4><p>Days, evenings, overnights or live-in, on any of the seven weekdays.</p></div>
+                <div><h3>Schedule</h3><p>Days, evenings, overnights or live-in, on any of the seven weekdays.</p></div>
               </div>
               <div className="point">
                 <span className="icon-square"><svg className="i" aria-hidden="true"><use href="#i-user" /></svg></span>
-                <div><h4>Care recipient</h4><p>Pediatric or adult, so caregivers with the right experience reply.</p></div>
+                <div><h3>Care recipient</h3><p>Pediatric or adult, so caregivers with the right experience reply.</p></div>
               </div>
               <div className="point">
                 <span className="icon-square"><svg className="i" aria-hidden="true"><use href="#i-hourglass" /></svg></span>
-                <div><h4>Duration</h4><p>Fill-in (a shift or a few days), short-term (up to a few months) or long-term.</p></div>
+                <div><h3>Duration</h3><p>Fill-in (a shift or a few days), short-term (up to a few months) or long-term.</p></div>
               </div>
             </div>
           </div>
