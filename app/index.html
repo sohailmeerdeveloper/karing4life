@@ -25,9 +25,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+.boot{min-height:100vh;min-height:100svh;display:grid;place-content:center;justify-items:center;gap:18px;background:#FEFAE0}
+.boot span{width:44px;height:4px;border-radius:4px;background:#D9DDB8;overflow:hidden;position:relative}
+.boot span::after{content:"";position:absolute;inset:0;width:40%;border-radius:4px;background:#606C38;animation:boot 1s ease-in-out infinite alternate}
+@keyframes boot{to{transform:translateX(150%)}}
+@media (prefers-reduced-motion:reduce){.boot span::after{animation:none}}
+</style>
 </head>
 <body>
-<div id="root"></div>
+<!-- shown until the app has loaded (slow connections), then replaced by React -->
+<div id="root"><div class="boot" aria-hidden="true"><img src="/logo-olive.webp" width="88" height="88" alt=""><span></span></div></div>
 <noscript><p style="padding:24px;font-family:sans-serif">Karing4Life needs JavaScript turned on. Please enable it to browse care requests and caregivers.</p></noscript>
 <script type="module" src="/src/main.jsx"></script>
 </body>

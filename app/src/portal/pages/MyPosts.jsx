@@ -6,6 +6,13 @@ import { usePortal } from '../context.jsx';
 import { Btn, Card, Empty, IconBtn, Notice, PageHead, Seg, Skel, TrashBtn, confirm, fmtDate } from '../ui.jsx';
 import PostCard, { postState } from '../PostCard.jsx';
 
+/** When the member last posted a family request. Uses the post log as well as the posts that
+    still exist, so a deleted request still counts toward the cooldown. */
+export async function lastFamilyPost(me) {
+  const { data } = await supabase.from('family_post_log').select('last_post_at').eq('user_id', me).maybeSingle();
+  return data?.last_post_at ? [{ kind: 'family', created_at: data.last_post_at }] : [];
+}
+
 export function nextFreePost(posts, days = 14) {
   const last = posts.filter((p) => p.kind === 'family').map((p) => new Date(p.created_at)).sort((a, b) => b - a)[0];
   if (!last) return null;
@@ -22,20 +29,21 @@ export default function MyPosts() {
   const { data, loading, reload } = useAsync(async () => {
     const posts = await q(supabase.from('posts').select('*').eq('author_id', me).eq('kind', kind).order('created_at', { ascending: false }));
     const ids = posts.map((p) => p.id);
-    const [convs, quotas, regions] = await Promise.all([
+    const [convs, quotas, regions, logged] = await Promise.all([
       ids.length ? q(supabase.from('conversations').select('post_id').in('post_id', ids)) : [],
       !isAgency && ids.length ? q(supabase.from('contact_quotas').select('*').in('post_id', ids)) : [],
       isAgency ? q(supabase.rpc('access_regions', { uid: me, plan_kind: 'agency' })) : [],
+      isAgency ? [] : lastFamilyPost(me),
     ]);
     const count = {}; convs.forEach((c) => { count[c.post_id] = (count[c.post_id] || 0) + 1; });
-    return { posts, count, quotas: Object.fromEntries(quotas.map((x) => [x.post_id, x])), regions };
+    return { posts, count, quotas: Object.fromEntries(quotas.map((x) => [x.post_id, x])), regions, logged };
   }, [me, kind]);
 
   const posts = data?.posts || [];
   const open = posts.filter((p) => postState(p)[0] === 'Open');
   const past = posts.filter((p) => postState(p)[0] !== 'Open');
   const list = tab === 'open' ? open : past;
-  const cooldown = !isAgency ? nextFreePost(posts, price('family_post_cooldown_days', 14)) : null;
+  const cooldown = !isAgency ? nextFreePost([...posts, ...(data?.logged || [])], price('family_post_cooldown_days', 14)) : null;
   const noRegions = isAgency && data && !data.regions.length;
 
   const del = async (p) => {

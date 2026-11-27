@@ -1,7 +1,29 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useTitle } from '../lib/hooks.js';
 import { HeroSwitch } from '../components/HeroSwitch.jsx';
 const NYMap = lazy(() => import('../components/NYMap.jsx'));
+
+/** The map (MapLibre + tiles, ~2 MB) loads only when it's about to scroll into view, so it
+    doesn't hold up the first screen on phones. Same placeholder as before while it loads. */
+function MapWhenNear() {
+  const ref = useRef(null);
+  const [near, setNear] = useState(() => typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    if (near || !ref.current) return;
+    let io, idle;
+    // start watching only once the first screen has finished loading, so the map's
+    // script and tiles never compete with it
+    const watch = () => {
+      io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setNear(true); io.disconnect(); } }, { rootMargin: '200px 0px' });
+      io.observe(ref.current);
+    };
+    const later = () => { idle = (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(watch); };
+    if (document.readyState === 'complete') later(); else window.addEventListener('load', later, { once: true });
+    return () => { io?.disconnect(); window.removeEventListener('load', later); if (idle && window.cancelIdleCallback) window.cancelIdleCallback(idle); };
+  }, [near]);
+  const placeholder = <div className="map-row map-loading" aria-hidden="true" />;
+  return <div ref={ref} style={{ height: '100%' }}>{near ? <Suspense fallback={placeholder}><NYMap /></Suspense> : placeholder}</div>;
+}
 import { AUDIENCE_TILES, CareTiles, CtaBand, Examples, HowSteps, HowToggle, Icon } from '../components/bits.jsx';
 
 export default function HomePage() {
@@ -30,9 +52,7 @@ export default function HomePage() {
     <section className="section map-section" id="map-section" aria-label="Coverage map of New York State">
       <div className="stage stage-map">
         <div className="container">
-          <Suspense fallback={<div className="map-row map-loading" aria-hidden="true" />}>
-            <NYMap />
-          </Suspense>
+          <MapWhenNear />
         </div>
       </div>
     </section>

@@ -16,6 +16,12 @@ export default function CaregiverView() {
   const [chat, setChat] = useState(false);
   const [report, setReport] = useState(false);
   const { data, loading, setData } = useAsync(async () => {
+    // Public profile fields come from search_caregivers (never the license number or trial date).
+    const { data: rows, error } = await supabase.rpc('search_caregivers', { f: { id } });
+    const row = (rows || []).find((r) => r.user_id === id);
+    if (row) return { p: { id, full_name: row.full_name, avatar_url: row.avatar_url, town: row.town, created_at: row.member_since }, cg: row, saved: row.saved };
+    if (!error && rows?.length !== 200) return null;
+    // older databases without qa_round2.sql: read the tables directly
     const [p, cg, sv] = await Promise.all([
       q(supabase.from('profiles').select('id,full_name,avatar_url,town,created_at,status').eq('id', id).maybeSingle()),
       q(supabase.from('caregiver_profiles').select('*').eq('user_id', id).maybeSingle()),

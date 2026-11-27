@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Toasts } from './lib/toast.jsx';
-import { useReveal, useTitle } from './lib/hooks.js';
+import { setMeta, useReveal, useTitle } from './lib/hooks.js';
 import { Sprite } from './components/Sprite.jsx';
 import { Header, MobileMenu } from './components/Header.jsx';
 import { Footer } from './components/Footer.jsx';
@@ -12,6 +12,7 @@ import { AuthProvider } from './lib/auth.jsx';
 const PortalApp = lazy(() => import('./portal/PortalApp.jsx'));
 
 // Every page except Home is split into its own chunk and loaded on demand.
+// Adding a page? Also add it to the rewrites in vercel.json, or it will answer with HTTP 404.
 const LOAD = {
   how: () => import('./pages/HowPage.jsx'),
   requests: () => import('./pages/RequestsPage.jsx'),
@@ -33,16 +34,51 @@ const LOAD = {
 };
 const PAGES = Object.fromEntries(Object.entries(LOAD).map(([k, f]) => [k, lazy(f)]));
 
-/** Runs after the (lazy) page has rendered: scroll-in animations for `.reveal`. */
-function Page({ children }) {
+// Search and share descriptions, one per page (the tab title comes from each page's useTitle).
+const SITE = 'https://www.karing4life.com';
+const DESCRIPTION = {
+  '/': 'Karing4Life connects New York families with verified nurses and caregivers. Families post care requests for free, caregivers reply directly, and agencies recruit in the regions they serve.',
+  '/families': 'Find a verified nurse or caregiver in New York for free. Post one care request, hear from caregivers in your region and message up to 10 of them.',
+  '/caregivers': 'Nurses and caregivers: build a profile, see family care requests in the New York regions you work in, and reply directly. 14 days free, then $8.99 a month per region.',
+  '/agencies': 'Agencies and facilities: post unlimited jobs and recruit verified caregivers across New York for $49.99 a month per region.',
+  '/how': 'How Karing4Life works for families, caregivers and agencies: post, reply and message privately, with no agency in the middle.',
+  '/requests': 'Browse open family care requests across New York by care type, region and schedule. Unlock a region to read the details and reply.',
+  '/membership': 'Caregiver Region Access: $8.99 a month per New York region, billed together, with a 14-day free trial in every region.',
+  '/pricing': 'Simple pricing: free for families, $8.99 a month per region for caregivers and nurses, $49.99 a month per region for agencies.',
+  '/kommunity': 'Kommunity Korner: New York families pass on unused care supplies and equipment for free.',
+  '/about': 'Why Karing4Life exists: a direct, fair way for New York families and caregivers to find each other.',
+  '/contact': 'Questions about care, joining as a caregiver or Agency Access? Write to the Karing4Life team; a person replies within one business day.',
+  '/faq': 'Answers to common questions about Karing4Life for families, caregivers, agencies, accounts and safety.',
+  '/join': 'Create your Karing4Life profile as a family, a nurse or caregiver, or an agency. It takes about two minutes.',
+  '/signin': 'Sign in to your Karing4Life account.',
+  '/terms': 'Karing4Life Terms of Service, in plain language.',
+  '/privacy': 'Karing4Life Privacy Policy: what we collect, how we use it and who can see what.',
+  '/refunds': 'Karing4Life Refund Policy for region subscriptions and contact packs.',
+};
+
+/** Runs after the (lazy) page has rendered: scroll-in animations for `.reveal`, plus the
+    page's canonical URL and search/share tags. Unknown addresses are marked noindex. */
+function Page({ children, notFound }) {
   const { pathname, search } = useLocation();
   useReveal(pathname + search);
-  // one canonical URL per page (no query string), so search engines don't see duplicates
   useEffect(() => {
     let l = document.querySelector('link[rel=canonical]');
+    if (notFound) {
+      l?.remove();
+      setMeta('name', 'robots', 'noindex');
+      setMeta('name', 'description', 'This page doesn’t exist on Karing4Life.');
+      setMeta('property', 'og:url', null);
+      return () => setMeta('name', 'robots', null);
+    }
+    // one canonical URL per page (no query string), so search engines don't see duplicates
     if (!l) { l = document.createElement('link'); l.rel = 'canonical'; document.head.appendChild(l); }
-    l.href = 'https://www.karing4life.com' + pathname;
-  }, [pathname]);
+    l.href = SITE + pathname;
+    const d = DESCRIPTION[pathname.replace(/\/$/, '') || '/'] || DESCRIPTION['/'];
+    setMeta('name', 'description', d);
+    setMeta('property', 'og:description', d);
+    setMeta('name', 'twitter:description', d);
+    setMeta('property', 'og:url', SITE + pathname);
+  }, [pathname, notFound]);
   return <div className="page active">{children}</div>;
 }
 
@@ -117,7 +153,7 @@ function Layout() {
           <Routes>
             <Route path="/" element={<Page><HomePage /></Page>} />
             {Object.entries(PAGES).map(([k, P]) => <Route key={k} path={'/' + k} element={<Page><P /></Page>} />)}
-            <Route path="*" element={<Page><NotFound /></Page>} />
+            <Route path="*" element={<Page notFound><NotFound /></Page>} />
           </Routes>
         </Suspense>
       </main>

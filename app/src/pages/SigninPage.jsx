@@ -20,7 +20,8 @@ export default function SigninPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const fpRef = useRef(null);
-  const dest = next && next.startsWith('/portal') ? next : '/portal';
+  // only our own pages (e.g. /portal/…, /kommunity), never another site or the auth pages themselves
+  const dest = next && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\') && !/^\/(signin|join)\b/.test(next) ? next : '/portal';
 
   useEffect(() => { if (ready && user) navigate(dest, { replace: true }); }, [ready, user, dest, navigate]);
 
@@ -48,7 +49,8 @@ export default function SigninPage() {
   };
   const sendReset = async () => {
     const v = fpRef.current;
-    if (!v.value || !v.checkValidity()) { v.focus(); toast.error('Enter your email', 'We’ll send the reset link there.'); return; }
+    if (!v.value.trim()) { v.focus(); toast.error('Enter your email', 'We’ll send the reset link there.'); return; }
+    if (!EMAIL_RE.test(v.value.trim())) { v.focus(); toast.error('That doesn’t look like an email address', 'Check it and try again.'); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(v.value.trim(), { redirectTo: window.location.origin + '/reset-password' });
     if (error && (error.status === 429 || /rate limit/i.test(error.message))) { toast.error('Too many requests', 'Please wait a few minutes before asking for another link.'); return; }
     if (error && /fetch|network/i.test(error.message)) { toast.error('Couldn’t send the link', 'Check your connection and try again.'); return; }

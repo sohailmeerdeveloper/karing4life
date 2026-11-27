@@ -51,7 +51,8 @@ export function AuthProvider({ children }) {
     ready, session, user: session?.user || null, profile, extra,
     roles: profile ? ROLE_ORDER.filter((r) => profile.roles.includes(r)) : [],
     refresh: () => load(session),
-    signOut: async () => { signedOutAt = Date.now(); await supabase.auth.signOut(); setProfile(null); setExtra({}); },
+    // "Sign out · On this device": only this browser's session ends, other devices stay signed in
+    signOut: async () => { signedOutAt = Date.now(); await supabase.auth.signOut({ scope: 'local' }); setProfile(null); setExtra({}); },
   }), [ready, session, profile, extra, load]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

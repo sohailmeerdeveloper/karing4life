@@ -64,7 +64,8 @@ export default function Verification() {
     if (d.file_path) await supabase.storage.from('verification').remove([d.file_path]);
     const { error } = await supabase.from('verification_documents').delete().eq('id', d.id);
     if (error) { toast.error('Couldn’t remove', errText(error)); return; }
-    reload(true); toast('Removed');
+    // removing the last document in review takes the status back out of "In review" (database trigger)
+    reload(true); await refresh(); toast('Removed');
   };
   const view = async (d) => { try { window.open(await signedUrl(d.file_path), '_blank', 'noopener'); } catch (e) { toast.error('Couldn’t open file', errText(e)); } };
 

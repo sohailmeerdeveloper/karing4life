@@ -81,7 +81,7 @@ export function CaregiverCard({ c, onSave, onMessage, base }) {
   return (
     <article className="cg-card">
       <div className="cg-head">
-        <Link to={base + '/caregivers/' + c.user_id}><Avatar name={c.full_name} url={c.avatar_url} size="lg" /></Link>
+        <Link to={base + '/caregivers/' + c.user_id} aria-label={c.full_name + '’s profile'}><Avatar name={c.full_name} url={c.avatar_url} size="lg" /></Link>
         <div style={{ minWidth: 0 }}>
           <h3><Link to={base + '/caregivers/' + c.user_id} style={{ color: 'inherit' }}>{c.full_name}</Link></h3>
           <div className="sub">{c.credential}</div>

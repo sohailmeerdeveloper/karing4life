@@ -163,9 +163,9 @@ export function Notice({ tone, icon = 'info', children, action }) {
   return <div className={'notice' + (tone ? ' ' + tone : '')}><PIcon name={icon} /><div>{children}</div>{action && <div className="n-act">{action}</div>}</div>;
 }
 
-export function Progress({ value, max, tone }) {
+export function Progress({ value, max, tone, label = 'Contacts used' }) {
   const pct = max ? Math.min(100, Math.round((value / max) * 100)) : 0;
-  return <div className={'progress' + (tone ? ' ' + tone : '')} role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}><span style={{ width: pct + '%' }} /></div>;
+  return <div className={'progress' + (tone ? ' ' + tone : '')} role="progressbar" aria-label={label} aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}><span style={{ width: pct + '%' }} /></div>;
 }
 
 /* ---------------- tabs ---------------- */

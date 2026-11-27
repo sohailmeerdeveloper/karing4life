@@ -59,7 +59,7 @@ export default function CaregiverProfile() {
         <div className="stack">
           <Card title="Profile strength" icon="zap">
             <div className="flex between" style={{ marginBottom: 8 }}><strong style={{ fontSize: 28 }}>{c.pct}%</strong><Avail v={v.availability} /></div>
-            <Progress value={c.pct} max={100} />
+            <Progress value={c.pct} max={100} label="Profile strength" />
             {c.missing.length > 0
               ? <><p className="small muted" style={{ margin: '14px 0 8px' }}>Add these to show up higher in searches:</p><ul className="small" style={{ margin: 0, paddingLeft: 18, color: 'var(--ink-2)' }}>{c.missing.map((m) => <li key={m}>{m}</li>)}</ul></>
               : <p className="small" style={{ marginTop: 12, color: 'var(--success-ink)', fontWeight: 700 }}>Your profile is complete. Nice work!</p>}

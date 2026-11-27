@@ -25,7 +25,7 @@ export default function CaregiversPage() {
           <div className="ph-aside">
             <div className="price-card">
               <div className="pc-label">Pick your regions</div>
-              <h3 style={{ marginTop: '8px', fontSize: '22px' }}>Pay only for where you work.</h3>
+              <h2 style={{ marginTop: '8px', fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em' }}>Pay only for where you work.</h2>
               <div className="pc-big" style={{ marginTop: '16px' }}>$8.99 <small>/ month per region</small></div>
               <p className="pc-sub">Choose any of New York's 16 regions and cancel anytime. Every family request in those regions is yours to read and reply to.</p>
               <ul>
@@ -202,17 +202,17 @@ export default function CaregiversPage() {
               <div className="rule-list" style={{ gridTemplateColumns: '1fr' }}>
                 <div className="rule">
                   <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-pin" /></svg></span>
-                  <div><h4>Just your county</h4><p>For example, Suffolk only.</p></div>
+                  <div><h3>Just your county</h3><p>For example, Suffolk only.</p></div>
                   <span className="rule-val">$8.99 / mo</span>
                 </div>
                 <div className="rule">
                   <span className="icon-circle"><svg className="i" aria-hidden="true"><use href="#i-map" /></svg></span>
-                  <div><h4>A few neighbouring regions</h4><p>For example, Brooklyn, Queens and Nassau.</p></div>
+                  <div><h3>A few neighbouring regions</h3><p>For example, Brooklyn, Queens and Nassau.</p></div>
                   <span className="rule-val">$26.97 / mo</span>
                 </div>
                 <div className="rule">
                   <span className="icon-circle sand"><svg className="i" aria-hidden="true"><use href="#i-globe" /></svg></span>
-                  <div><h4>All of New York State</h4><p>All 16 regions in one charge.</p></div>
+                  <div><h3>All of New York State</h3><p>All 16 regions in one charge.</p></div>
                   <span className="rule-val">$143.84 / mo</span>
                 </div>
               </div>

@@ -40,7 +40,7 @@ export default function PricingPage() {
         </div>
         <div className="calc">
           <div>
-            <h3>What would it cost me?</h3>
+            <h2>What would it cost me?</h2>
             <div className="seg-btns" role="group" aria-label="I am a" style={{ marginTop: 14 }}>
               <button aria-pressed={who === 'caregiver'} onClick={() => setWho('caregiver')}>Caregiver</button>
               <button aria-pressed={who === 'agency'} onClick={() => setWho('agency')}>Agency</button>

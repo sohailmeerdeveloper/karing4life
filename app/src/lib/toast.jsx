@@ -15,8 +15,10 @@ export function Toasts() {
   const [items, setItems] = useState([]);
   useEffect(() => {
     const on = (t) => {
-      // a success means the earlier problem is solved, so older error toasts go away
-      setItems((xs) => [...(t.kind === 'ok' ? xs.filter((x) => x.kind !== 'error') : xs).slice(-3), t]);
+      // a success means the earlier problem is solved, so older error toasts go away;
+      // the same message twice (e.g. a form submitted again) replaces the first instead of stacking
+      const same = (x) => x.kind === t.kind && x.title === t.title && (x.body || '') === (t.body || '');
+      setItems((xs) => [...(t.kind === 'ok' ? xs.filter((x) => x.kind !== 'error') : xs).filter((x) => !same(x)).slice(-3), t]);
       const ms = t.kind === 'error' ? 6000 : 3800;
       setTimeout(() => setItems((xs) => xs.map((x) => (x.id === t.id ? { ...x, out: true } : x))), ms);
       setTimeout(() => setItems((xs) => xs.filter((x) => x.id !== t.id)), ms + 250);

@@ -6,7 +6,7 @@ import { useAsync } from '../../lib/useAsync.js';
 import { toast } from '../../lib/toast.jsx';
 import { usePortal } from '../context.jsx';
 import { Btn, Card, Chips, Field, Notice, PageHead, SchedulePicker, Skel, Empty, regionName, fmtDate } from '../ui.jsx';
-import { nextFreePost } from './MyPosts.jsx';
+import { lastFamilyPost, nextFreePost } from './MyPosts.jsx';
 import { SKILLED, NONSKILLED, RECIPIENTS, DURATIONS } from '../caregiver.jsx';
 import { REGIONS, GROUPS } from '../../data/data.js';
 
@@ -27,7 +27,8 @@ export default function PostEditor() {
     const regions = isAgency ? await q(supabase.rpc('access_regions', { uid: me, plan_kind: 'agency' })) : REGIONS.map((r) => r.key);
     const post = id ? await q(supabase.from('posts').select('*').eq('id', id).eq('author_id', me).maybeSingle()) : null;
     // a family can post once every N days: check before they fill the form in
-    const mine = !id && !isAgency ? await q(supabase.from('posts').select('kind,created_at').eq('author_id', me).eq('kind', 'family')) : [];
+    // (the post log keeps deleted requests counting toward the cooldown)
+    const mine = !id && !isAgency ? [...await q(supabase.from('posts').select('kind,created_at').eq('author_id', me).eq('kind', 'family')), ...await lastFamilyPost(me)] : [];
     return { regions, post, mine };
   }, [id, me]);
 
