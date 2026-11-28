@@ -51,7 +51,19 @@ export function useScrolled(px = 8) {
   return s;
 }
 
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+/** True while the media query matches (e.g. a shorter placeholder on phones). */
+export function useMedia(query) {
+  const [m, setM] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const on = () => setM(mq.matches);
+    on(); mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, [query]);
+  return m;
+}
+
+const FOCUSABLE ='a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 /** While `open`: Tab and Shift+Tab stay inside `ref`, Esc calls `onEscape`. On close, focus
     goes back to whatever had it before (e.g. the button that opened the menu). */
 export function useFocusTrap(ref, open, onEscape) {

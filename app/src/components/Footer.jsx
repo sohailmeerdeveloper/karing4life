@@ -61,7 +61,7 @@ export function Footer() {
             </div>
             <form id="footerForm" noValidate onSubmit={onSubmit}>
               <label className="sr-only" htmlFor="ftEmail">Email for updates</label>
-              <input id="ftEmail" type="email" placeholder="Your email for occasional updates" autoComplete="email" />
+              <input id="ftEmail" type="email" placeholder="Your email for updates" autoComplete="email" />
               <button className="btn" type="submit">Keep me posted</button>
             </form>
           </div>

@@ -3,7 +3,8 @@ import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-do
 import { useAuth, justSignedOut } from '../lib/auth.jsx';
 import { PortalProvider } from './context.jsx';
 import PortalLayout from './PortalLayout.jsx';
-import { Btn, Loading } from './ui.jsx';
+import { Btn } from './ui.jsx';
+import Boot from '../components/Boot.jsx';
 import './portal.css';
 
 const L = (f) => lazy(f);
@@ -137,7 +138,7 @@ function Home() {
 export default function PortalApp() {
   const { ready, user, profile, signOut } = useAuth();
   const loc = useLocation();
-  if (!ready || (user && !profile)) return <Loading />;
+  if (!ready || (user && !profile)) return <Boot />;
   if (!user) return <Navigate to={justSignedOut() ? '/' : '/signin?next=' + encodeURIComponent(loc.pathname)} replace />;
   if (profile.status === 'suspended' || !profile.roles?.length) {
     return (
@@ -151,7 +152,7 @@ export default function PortalApp() {
     );
   }
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<Boot />}>
       <Routes>
         <Route index element={<Home />} />
         <Route path=":role/*" element={<RolePortal />} />

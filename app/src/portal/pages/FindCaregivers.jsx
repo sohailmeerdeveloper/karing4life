@@ -22,7 +22,7 @@ function Filters({ f, set, reset, count }) {
   return (
     <div className="pfilters">
       <div className="f-h">
-        <h4><PIcon name="sliders" className="pi-sm" />Filters{count > 0 && <span className="fsec-n">{count}</span>}</h4>
+        <h2><PIcon name="sliders" className="pi-sm" />Filters{count > 0 && <span className="fsec-n">{count}</span>}</h2>
         {count > 0 && <button type="button" className="pb pb-link pb-sm" onClick={reset}>Clear all</button>}
       </div>
       <Section title="Type of care" icon="steth" count={f.care.length} defaultOpen onClear={() => set({ care: [] })}>
@@ -81,7 +81,7 @@ export function CaregiverCard({ c, onSave, onMessage, base }) {
   return (
     <article className="cg-card">
       <div className="cg-head">
-        <Link to={base + '/caregivers/' + c.user_id} aria-label={c.full_name + '’s profile'}><Avatar name={c.full_name} url={c.avatar_url} size="lg" /></Link>
+        <Link to={base + '/caregivers/' + c.user_id} tabIndex={-1} aria-hidden="true"><Avatar name={c.full_name} url={c.avatar_url} size="lg" /></Link>
         <div style={{ minWidth: 0 }}>
           <h3><Link to={base + '/caregivers/' + c.user_id} style={{ color: 'inherit' }}>{c.full_name}</Link></h3>
           <div className="sub">{c.credential}</div>
@@ -98,7 +98,7 @@ export function CaregiverCard({ c, onSave, onMessage, base }) {
         <span title={schedSummary(c.schedule)}><PIcon name="cal" />{Object.keys(c.schedule || {}).length ? schedSummary(c.schedule).split(' · ')[0] : 'Flexible'}</span>
       </div>
       <div className="cg-foot">
-        <Btn size="sm" variant="ghost" icon="user" to={base + '/caregivers/' + c.user_id}>Profile</Btn>
+        <Btn size="sm" variant="ghost" icon="user" to={base + '/caregivers/' + c.user_id}>Profile<span className="sr-only">: {c.full_name}</span></Btn>
         <Btn size="sm" variant="primary" icon="msg" onClick={() => onMessage(c)}>Message</Btn>
       </div>
     </article>
@@ -143,6 +143,7 @@ export default function FindCaregivers({ saved }) {
       <div className={saved ? '' : 'filters-layout'}>
         {!saved && <Card className="hide-m filter-card">{filters}</Card>}
         <div>
+          <h2 className="sr-only">{saved ? "Saved caregivers" : "Caregivers"}</h2>
           <div className="results-h"><span className="small muted"><strong style={{ color: 'var(--ink)' }}>{loading ? '…' : list.length}</strong> caregiver{list.length === 1 ? '' : 's'}{count ? ' match your filters' : ''}</span></div>
           {!saved && <ActiveFilters f={f} set={set} reset={() => setF({ ...EMPTY, q: f.q })} />}
           {loading && !data ? <div className="cg-grid">{[1, 2, 3, 4].map((i) => <div key={i} className="skel" style={{ height: 280 }} />)}</div>

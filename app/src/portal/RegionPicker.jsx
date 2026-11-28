@@ -9,7 +9,7 @@ import { toast } from '../lib/toast.jsx';
  *   value: region keys · onChange(keys) · status(key) → 'paid' | 'trial'
  *   search: show "find my address" (adds the region it falls in)
  */
-export default function RegionPicker({ value = [], onChange, status, readOnly, listLabel = 'Regions', note, search = true, onAddress }) {
+export default function RegionPicker({ value = [], onChange, status, courtesy, readOnly, listLabel = 'Regions', note, search = true, onAddress }) {
   const [flash, setFlash] = useState(null);
   const sel = useMemo(() => new Set(value), [value]);
   const ping = (k) => { setFlash(k); setTimeout(() => setFlash((f) => (f === k ? null : f)), 600); };
@@ -45,7 +45,7 @@ export default function RegionPicker({ value = [], onChange, status, readOnly, l
           const all = list.every((r) => sel.has(r.key));
           return (
             <div className="rlist-g" key={g}>
-              <h5>{GROUPS[g]}{!readOnly && <button type="button" onClick={() => setGroup(g, !all)}>{all ? 'Clear' : 'Select all'}</button>}</h5>
+              <h2>{GROUPS[g]}{!readOnly && <button type="button" onClick={() => setGroup(g, !all)}>{all ? 'Clear' : 'Select all'}</button>}</h2>
               <div className={list.length > 1 ? 'rlist-items' : undefined}>
               {list.map((r) => {
                 const st = status?.(r.key);
@@ -54,7 +54,7 @@ export default function RegionPicker({ value = [], onChange, status, readOnly, l
                     <input type="checkbox" checked={sel.has(r.key)} disabled={readOnly} onChange={() => toggle(r.key)} />
                     <span className="rck-box" aria-hidden="true"><PIcon name="check" /></span>
                     {r.name}
-                    {st && <span className={'rck-end ' + st} data-tip={st === 'paid' ? 'Active subscription' : 'Free during your trial'} data-tip-pos="left">{st === 'paid' ? <PIcon name="checkCircle" className="pi-sm" /> : 'Trial'}</span>}
+                    {st && <span className={'rck-end ' + st} data-tip={st === 'paid' ? (courtesy?.has(r.key) ? 'Courtesy region, free from our team' : 'Active subscription') : 'Free during your trial'} data-tip-pos="left">{st === 'paid' ? <PIcon name="checkCircle" className="pi-sm" /> : 'Trial'}</span>}
                   </label>
                 );
               })}

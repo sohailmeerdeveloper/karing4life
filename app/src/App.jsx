@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-ro
 import { Toasts } from './lib/toast.jsx';
 import { setMeta, useReveal, useTitle } from './lib/hooks.js';
 import { Sprite } from './components/Sprite.jsx';
+import Boot from './components/Boot.jsx';
 import { Header, MobileMenu } from './components/Header.jsx';
 import { Footer } from './components/Footer.jsx';
 import HomePage from './pages/HomePage.jsx';
@@ -149,7 +150,7 @@ function Layout() {
       <Header onOpenMenu={() => setMenu(true)} menuOpen={menu} />
       <MobileMenu open={menu} onClose={closeMenu} />
       <main id="main" tabIndex={-1}>
-        <Suspense fallback={<div className="page-loading" aria-hidden="true" />}>
+        <Suspense fallback={<Boot inline />}>
           <Routes>
             <Route path="/" element={<Page><HomePage /></Page>} />
             {Object.entries(PAGES).map(([k, P]) => <Route key={k} path={'/' + k} element={<Page><P /></Page>} />)}
@@ -169,7 +170,7 @@ export default function App() {
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <Routes>
-          <Route path="/portal/*" element={<><Sprite /><Suspense fallback={<div className="page-loading" aria-hidden="true" />}><PortalApp /></Suspense><Toasts /></>} />
+          <Route path="/portal/*" element={<><Sprite /><Suspense fallback={<Boot />}><PortalApp /></Suspense><Toasts /></>} />
           <Route path="*" element={<Layout />} />
         </Routes>
       </AuthProvider>

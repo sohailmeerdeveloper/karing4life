@@ -90,7 +90,7 @@ export default function Verification() {
             <Card key={type}>
               <div className="flex" style={{ alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
                 <span className="stat-ic" style={done ? { background: 'var(--success-50)', color: 'var(--success)' } : undefined}><PIcon name={done ? 'checkCircle' : DOC_ICON[type]} /></span>
-                <div className="grow"><h3 style={{ fontSize: 17 }}>Step {i + 1}: {title}</h3><p className="small muted">{sub}</p></div>
+                <div className="grow"><h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>Step {i + 1}: {title}</h2><p className="small muted">{sub}</p></div>
                 {done && <Badge tone="ok" icon="check">Added</Badge>}
               </div>
               {type === 'reference'
@@ -102,7 +102,7 @@ export default function Verification() {
             </Card>
           ))}
           {licensed && (
-            <Card><div className="flex between flex-wrap"><div><h3 style={{ fontSize: 16 }}>References (optional)</h3><p className="small muted">Extra references help families decide faster.</p></div><Btn variant="ghost" icon="plus" onClick={() => setRef({})}>Add reference</Btn></div></Card>
+            <Card><div className="flex between flex-wrap"><div><h2 style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.02em' }}>References (optional)</h2><p className="small muted">Extra references help families decide faster.</p></div><Btn variant="ghost" icon="plus" onClick={() => setRef({})}>Add reference</Btn></div></Card>
           )}
         </div>
         <div className="stack">

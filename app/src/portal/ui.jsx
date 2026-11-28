@@ -124,7 +124,7 @@ export function Empty({ icon = 'inbox', title, body, action }) {
   return (
     <div className="empty">
       <span className="e-ic"><PIcon name={icon} /></span>
-      <h3>{title}</h3>
+      <h2>{title}</h2>
       {body && <p>{body}</p>}
       {action}
     </div>
@@ -335,7 +335,7 @@ export function ConfirmHost() {
       </>}>
       {c && (<>
         <div className={'confirm-ic' + (tone === 'ok' ? ' ok' : tone === 'info' ? ' info' : '')}>{tone === 'danger' ? <TrashIcon /> : <PIcon name={c.icon || 'info'} />}</div>
-        <h3 className="confirm-t">{c.title}</h3>
+        <h2 className="confirm-t">{c.title}</h2>
         {c.body && <p className="confirm-s">{c.body}</p>}
       </>)}
     </Modal>

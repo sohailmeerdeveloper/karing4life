@@ -17,6 +17,8 @@ export default function Regions() {
   const { data: subs, loading } = useAsync(() => q(supabase.from('region_subscriptions').select('*').eq('user_id', me).eq('plan', plan).order('created_at')), [me, plan]);
   const active = useMemo(() => (subs || []).filter((s) => s.status !== 'canceled'), [subs]);
   const paid = useMemo(() => new Set(active.map((s) => s.region_key)), [active]);
+  // courtesy regions (granted by our team) are free: same rule as Billing
+  const courtesy = useMemo(() => new Set(active.filter((s) => s.source === 'admin').map((s) => s.region_key)), [active]);
   const cg = extra.caregiver;
   const trialLeft = isCg && cg ? daysLeft(cg.trial_ends_at) : 0;
   const [sel, setSel] = useState([]);
@@ -53,16 +55,17 @@ export default function Regions() {
         : <Notice tone="warn" icon="lock" action={<Btn size="sm" variant="accent" onClick={() => setCheckout(true)} disabled={!toBuy.length}>Unlock</Btn>}><strong>Your free trial has ended.</strong> Subscribe to see posts in regions without the green “Active” mark.</Notice>)}
 
       <Card style={{ marginTop: 16 }}>
-        {loading ? <div className="skel" style={{ height: 360 }} /> : <RegionPicker value={sel} onChange={setSel} status={status} note="Tip: search your address to add your region, or tap “NYC & Long Island” to pick the boroughs." />}
+        {loading ? <div className="skel" style={{ height: 360 }} /> : <RegionPicker value={sel} onChange={setSel} status={status} courtesy={courtesy} note="Tip: search your address to add your region, or tap “NYC & Long Island” to pick the boroughs." />}
       </Card>
 
       <div className="grid-2" style={{ marginTop: 20 }}>
         <Card title="Your plan" icon="card">
           <div className="kv">
             <div><span className="k">Regions selected</span><span className="v">{sel.length}</span></div>
-            <div><span className="k">Active subscriptions</span><span className="v">{paid.size}</span></div>
+            <div><span className="k">Active subscriptions</span><span className="v">{paid.size - courtesy.size}</span></div>
+            {courtesy.size > 0 && <div><span className="k">Courtesy regions (free)</span><span className="v">{courtesy.size}</span></div>}
             <div><span className="k">Price per region</span><span className="v">${each.toFixed(2)} / mo</span></div>
-            <div><span className="k">Monthly total {toBuy.length > 0 && '(if you add the new ones)'}</span><span className="v money">${((paid.size + (isCg ? toBuy.length : toBuy.length)) * each).toFixed(2)}</span></div>
+            <div><span className="k">Monthly total {toBuy.length > 0 && '(if you add the new ones)'}</span><span className="v money">${((paid.size - courtesy.size + toBuy.length) * each).toFixed(2)}</span></div>
           </div>
           {toBuy.length > 0 && <div style={{ marginTop: 16 }}><Btn variant="accent" icon="card" block onClick={() => setCheckout(true)}>Subscribe to {toBuy.length} new region{toBuy.length === 1 ? '' : 's'}</Btn></div>}
         </Card>

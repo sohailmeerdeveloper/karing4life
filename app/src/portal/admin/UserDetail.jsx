@@ -94,7 +94,7 @@ export default function UserDetail() {
               <Avatar name={name} url={ag?.logo_url || p.avatar_url} size="lg" square={!!ag} />
               <div className="ph-m">
                 <div className="kv">
-                  <div><span className="k">Email</span><span className="v" style={{ wordBreak: 'break-all' }}>{u.email}</span></div>
+                  <div><span className="k">Email</span><span className="v" style={{ overflowWrap: 'anywhere' }}>{/* break before the @ on phones, not one letter from the end */}{u.email?.includes('@') ? <>{u.email.split('@')[0]}<wbr />@{u.email.split('@').slice(1).join('@')}</> : u.email}</span></div>
                   <div><span className="k">Town · region</span><span className="v">{p.town || '—'} · {regionName(p.region_key)}</span></div>
                   <div><span className="k">Joined</span><span className="v">{fmtDate(p.created_at)}</span></div>
                   <div><span className="k">Last seen</span><span className="v">{p.last_seen_at ? timeAgo(p.last_seen_at) : 'Never'}</span></div>

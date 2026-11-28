@@ -6,7 +6,8 @@ import { useAsync } from '../../lib/useAsync.js';
 import { toast } from '../../lib/toast.jsx';
 import { usePortal } from '../context.jsx';
 import { Btn, Card, Chips, Field, Notice, PageHead, SchedulePicker, Skel, Empty, regionName, fmtDate } from '../ui.jsx';
-import { lastFamilyPost, nextFreePost } from './MyPosts.jsx';
+import { cooldownHint, lastFamilyPost, nextFreePost } from './MyPosts.jsx';
+import { postState } from '../PostCard.jsx';
 import { SKILLED, NONSKILLED, RECIPIENTS, DURATIONS } from '../caregiver.jsx';
 import { REGIONS, GROUPS } from '../../data/data.js';
 
@@ -28,7 +29,7 @@ export default function PostEditor() {
     const post = id ? await q(supabase.from('posts').select('*').eq('id', id).eq('author_id', me).maybeSingle()) : null;
     // a family can post once every N days: check before they fill the form in
     // (the post log keeps deleted requests counting toward the cooldown)
-    const mine = !id && !isAgency ? [...await q(supabase.from('posts').select('kind,created_at').eq('author_id', me).eq('kind', 'family')), ...await lastFamilyPost(me)] : [];
+    const mine = !id && !isAgency ? [...await q(supabase.from('posts').select('kind,status,created_at,expires_at').eq('author_id', me).eq('kind', 'family')), ...await lastFamilyPost(me)] : [];
     return { regions, post, mine };
   }, [id, me]);
 
@@ -45,7 +46,7 @@ export default function PostEditor() {
     <>
       <PageHead back={[path, 'My requests']} title="Post a care request" />
       <Card><Empty icon="hourglass" title={'Your next free request opens ' + fmtDate(cooldown.toISOString(), { weekday: 'long', month: 'long', day: 'numeric' })}
-        body={`You can post one free request every ${price('family_post_cooldown_days', 14)} days. Meanwhile you can keep messaging caregivers from your open request.`}
+        body={`You can post one free request every ${price('family_post_cooldown_days', 14)} days. ${cooldownHint(data.mine.some((p) => p.status && postState(p)[0] === 'Open'))}`}
         action={<Btn to={path} icon="arrowL" variant="primary">Back to my requests</Btn>} /></Card>
     </>
   );

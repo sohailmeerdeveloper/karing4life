@@ -994,12 +994,13 @@ create policy "clear notifications" on public.notifications for delete to authen
 
 create policy "admin logs" on public.admin_logs for select to authenticated using (is_admin());
 
--- Kommunity Korner: anyone can read open items; members post and comment
-create policy "read kk" on public.kk_posts for select using (status <> 'hidden' or author_id = auth.uid() or is_admin());
+-- Kommunity Korner: members read only their own rows here (everyone else reads through kk_feed()/kk_thread(),
+-- which hide author ids, R3-NEW-02); members post and comment
+create policy "read kk" on public.kk_posts for select to authenticated using (author_id = auth.uid() or is_admin());
 create policy "post kk" on public.kk_posts for insert to authenticated with check (author_id = auth.uid() and has_role_any());
 create policy "edit kk" on public.kk_posts for update to authenticated using (author_id = auth.uid() or is_admin()) with check (author_id = auth.uid() or is_admin());
 create policy "delete kk" on public.kk_posts for delete to authenticated using (author_id = auth.uid() or is_admin());
-create policy "read kk comments" on public.kk_comments for select using (true);
+create policy "read kk comments" on public.kk_comments for select to authenticated using (author_id = auth.uid() or is_admin());
 create policy "comment kk" on public.kk_comments for insert to authenticated with check (author_id = auth.uid() and has_role_any());
 create policy "delete kk comment" on public.kk_comments for delete to authenticated using (author_id = auth.uid() or is_admin());
 
@@ -1007,7 +1008,7 @@ create policy "send contact" on public.contact_messages for insert to anon, auth
 create policy "admin contact" on public.contact_messages for all to authenticated using (is_admin()) with check (is_admin());
 
 -- Kommunity Korner listing for everyone: display name only ("Ana R."), a `mine` flag instead of
--- author ids, and the home town only for signed-in members (SEC-03).
+-- author ids, and never a home town (SEC-03, R3-NEW-01): the item's region is shown instead.
 drop function if exists public.kk_feed();
 create function public.kk_feed() returns table (
   id uuid, title text, body text, category text, condition text, region_key text, status text, created_at timestamptz,
@@ -1016,7 +1017,7 @@ language sql stable security definer set search_path = public as
 $$
   select k.id, k.title, k.body, k.category, k.condition, k.region_key, k.status, k.created_at,
          k.author_id = auth.uid(), public.short_name(p.full_name),
-         case when auth.uid() is not null then p.town end,
+         null::text,
          (select count(*) from kk_comments c where c.post_id = k.id)
     from kk_posts k join profiles p on p.id = k.author_id
    where k.status <> 'hidden' and p.status = 'active'
@@ -1043,6 +1044,19 @@ grant execute on function public.kk_feed(), public.kk_thread(uuid) to anon;
 revoke execute on function public.member_cards(uuid[]) from anon;
 revoke execute on function public.handle_new_user() from anon, authenticated;
 revoke execute on function public.push_notification(uuid, text, text, text, text) from public, anon, authenticated;
+
+-- One-off clean-up (does nothing on a fresh install): message notifications written before
+-- families were shown as "First L." (R3-NEW-04).
+update public.notifications n
+   set title = 'New message from ' || public.short_name(p.full_name)
+  from public.conversations c, public.profiles p
+ where n.kind = 'message'
+   and n.link ~ '/messages/[0-9a-f-]{36}$'
+   and c.id = substring(n.link from '[0-9a-f-]{36}$')::uuid
+   and p.id = case when c.user_a = n.user_id then c.user_b else c.user_a end
+   and (case when c.user_a = n.user_id then c.role_b else c.role_a end) = 'family'
+   and n.title = 'New message from ' || p.full_name
+   and public.short_name(p.full_name) is distinct from p.full_name;
 
 -- ---------- Public /requests teaser ----------
 create or replace function public.public_request_teasers()

@@ -48,7 +48,7 @@ function MemPicker() {
                     <article className={'mem-card' + (on ? ' on' : '')} key={r.key} id={'mem-' + r.key}>
                       <div className="mc-top"><div><h3>{r.name.replace(/ Region$/, '')} Region Access</h3><div className="mc-counties">{r.countyChips.join(', ')}</div></div><div className="mc-price">$8.99 <small>/ mo</small></div></div>
                       <p>Open and reply to every family care request posted in the {r.name} region. Cancel anytime, and add more regions whenever you like.</p>
-                      <button className="mem-toggle" type="button" aria-pressed={on} aria-label={(on ? 'Remove ' : 'Add ') + r.name + ' region'} onClick={() => toggle(r.key)}><Icon name={on ? 'check' : 'plus'} /><span>{on ? 'Added' : 'Add region'}</span></button>
+                      <button className="mem-toggle" type="button" aria-pressed={on} onClick={() => toggle(r.key)}><Icon name={on ? 'check' : 'plus'} /><span>{on ? 'Added' : 'Add region'}</span><span className="sr-only">: {r.name}</span></button>
                     </article>
                   );
                 })}

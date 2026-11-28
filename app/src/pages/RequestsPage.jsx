@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useTitle, useQuery, REDUCED } from '../lib/hooks.js';
+import { useTitle, useQuery, useMedia, REDUCED } from '../lib/hooks.js';
 import { CtaBand, RegionOptions, Icon } from '../components/bits.jsx';
 import { CARE, CARE_BY, R, REQUESTS, SCHED, DAYS, DAY_FULL, fmtDate } from '../data/data.js';
 import { supabase } from '../lib/supabase.js';
@@ -70,6 +70,7 @@ export default function RequestsPage() {
   const params = useQuery();
   const [f, setF] = useState(EMPTY);
   const [qDraft, setQDraft] = useState('');
+  const narrow = useMedia('(max-width: 560px)'), tiny = useMedia('(max-width: 400px)');   // the long example placeholder doesn't fit on phones
   const [open, setOpen] = useState({ skilled: true, nonskilled: true });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const listRef = useRef(null), countRef = useRef(null), toggleRef = useRef(null);
@@ -141,7 +142,7 @@ export default function RequestsPage() {
           <div className="rs-in">
             <Icon name="search" />
             <label className="sr-only" htmlFor="reqQ">Search care requests</label>
-            <input id="reqQ" type="search" placeholder="Search by care type or region, e.g. live-in, nursing, Brooklyn" value={qDraft}
+            <input id="reqQ" type="search" placeholder={tiny ? 'Search' : narrow ? 'Care type or region' : 'Search by care type or region, e.g. live-in, nursing, Brooklyn'} value={qDraft}
               onChange={(e) => { setQDraft(e.target.value); set({ q: e.target.value.trim().toLowerCase() }); }} />
           </div>
           <button className="btn btn-primary" type="submit">Search</button>

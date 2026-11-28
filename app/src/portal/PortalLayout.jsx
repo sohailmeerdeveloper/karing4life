@@ -4,7 +4,7 @@ import { useAuth } from '../lib/auth.jsx';
 import { supabase } from '../lib/supabase.js';
 import { usePortal } from './context.jsx';
 import { NAV, FOOT, ROLE_META } from './nav.js';
-import { Avatar, IconBtn, PIcon, timeAgo, ConfirmHost, Skel } from './ui.jsx';
+import { Avatar, IconBtn, PIcon, timeAgo, ConfirmHost, Skel, initials } from './ui.jsx';
 import { WelcomeGuide, hasSeenGuide } from './pages/Help.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
 import { toast } from '../lib/toast.jsx';
@@ -72,7 +72,7 @@ function Bell() {
   };
   return (
     <div ref={ref} className="p-pop">
-      <IconBtn icon="bell" label="Notifications" count={counts.notifications} onClick={() => setOpen(!open)} aria-expanded={open} tipPos="bottom" />
+      <IconBtn icon="bell" label={counts.notifications > 0 ? `Notifications, ${counts.notifications > 99 ? "99+" : counts.notifications} unread` : "Notifications"} count={counts.notifications} onClick={() => setOpen(!open)} aria-expanded={open} tipPos="bottom" />
       {open && (
         <div className="p-pop-panel" role="dialog" aria-label="Notifications">
           <div className="p-pop-head">Notifications{counts.notifications > 0 && <button className="pb pb-link pb-sm" onClick={readAll}>Mark all read</button>}</div>
@@ -105,7 +105,7 @@ function Me() {
   const out = async () => { await signOut(); toast('Signed out', 'See you soon.'); navigate('/'); };
   return (
     <div ref={ref} className="p-pop">
-      <button type="button" className="ib" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen(!open)} data-tip="Account menu" data-tip-pos="bottom">
+      <button type="button" className="ib" aria-label={`Account menu, ${initials(profile?.full_name)}`} aria-expanded={open} onClick={() => setOpen(!open)} data-tip="Account menu" data-tip-pos="bottom">
         <Avatar name={profile?.full_name} url={profile?.avatar_url} size="sm" />
       </button>
       {open && (
