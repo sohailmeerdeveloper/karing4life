@@ -135,7 +135,7 @@ export default function KommunityPage() {
               <div className="kk-meta">
                 <span><Icon name="tag" />{p.category}</span>
                 {p.region_key && <span><Icon name="pin" />{R[p.region_key]?.name}</span>}
-                <span><Icon name="user" />{p.author_name}{p.author_town ? `, ${p.author_town}` : ''}</span>
+                <span><Icon name="user" />{p.author_name}</span>{/* never a home town: the item's region is shown instead (R3-NEW-01) */}
                 <span><Icon name="clock" />{ago(p.created_at)}</span>
               </div>
               <div className="kk-foot">

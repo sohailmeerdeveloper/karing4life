@@ -19,7 +19,7 @@ export default function PostCard({ p, author, to, children, showState, replied }
         <div className="flex" style={{ minWidth: 0, alignItems: 'flex-start' }}>
           {author && <Avatar name={name} url={isAgency ? author?.agency?.logo_url : author?.avatar_url} size="sm" square={isAgency} />}
           <div style={{ minWidth: 0 }}>
-            <h3>{p.title}</h3>
+            <h2>{p.title}</h2>
             <div className="post-meta" style={{ marginTop: 4 }}>
               {author && <span><PIcon name={isAgency ? 'building' : 'heart'} />{name}</span>}
               <span><PIcon name="pin" />{p.town ? `${p.town} · ` : ''}{regionName(p.region_key)}</span>

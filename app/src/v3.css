@@ -10,7 +10,6 @@
 
 /* breathing room between sections */
 .page > section + section, .page > section + .cta-band { margin-top: var(--gap); }
-.page-loading { min-height: 100vh; }
 
 .section, .section-tight { padding: 0; }
 .map-section { padding: 0 !important; }

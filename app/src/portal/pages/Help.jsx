@@ -50,7 +50,7 @@ export function WelcomeGuide({ open, onClose, role }) {
       </>}>
       <div className="guide-body fade-in" key={i}>
         <div className="guide-ic"><PIcon name={s[0]} /></div>
-        <h3>{s[1]}</h3>
+        <h2>{s[1]}</h2>
         <p>{s[2]}</p>
       </div>
       <div className="guide-steps" aria-label={`Step ${i + 1} of ${steps.length}`}>{steps.map((_, k) => <i key={k} className={k === i ? 'on' : ''} />)}</div>

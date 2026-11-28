@@ -19,6 +19,7 @@ export default function SigninPage() {
   const [forgot, setForgot] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [fpErr, setFpErr] = useState('');   // forgot-password field error, shown under the field like /join
   const fpRef = useRef(null);
   // only our own pages (e.g. /portal/…, /kommunity), never another site or the auth pages themselves
   const dest = next && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\') && !/^\/(signin|join)\b/.test(next) ? next : '/portal';
@@ -49,8 +50,9 @@ export default function SigninPage() {
   };
   const sendReset = async () => {
     const v = fpRef.current;
-    if (!v.value.trim()) { v.focus(); toast.error('Enter your email', 'We’ll send the reset link there.'); return; }
-    if (!EMAIL_RE.test(v.value.trim())) { v.focus(); toast.error('That doesn’t look like an email address', 'Check it and try again.'); return; }
+    if (!v.value.trim()) { v.focus(); setFpErr('Enter your email. We’ll send the reset link there.'); return; }
+    if (!EMAIL_RE.test(v.value.trim())) { v.focus(); setFpErr('That doesn’t look like an email address. Check it and try again.'); return; }
+    setFpErr('');
     const { error } = await supabase.auth.resetPasswordForEmail(v.value.trim(), { redirectTo: window.location.origin + '/reset-password' });
     if (error && (error.status === 429 || /rate limit/i.test(error.message))) { toast.error('Too many requests', 'Please wait a few minutes before asking for another link.'); return; }
     if (error && /fetch|network/i.test(error.message)) { toast.error('Couldn’t send the link', 'Check your connection and try again.'); return; }
@@ -82,9 +84,11 @@ export default function SigninPage() {
               <p className="small" style={{ color: 'var(--ink-2)' }}>Enter your email and we'll send a reset link.</p>
               <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
                 <label className="sr-only" htmlFor="fpEmail">Email for password reset</label>
-                <input ref={fpRef} className="input" id="fpEmail" type="email" placeholder="you@example.com" style={{ height: '44px' }} />
+                <input ref={fpRef} className="input" id="fpEmail" type="email" placeholder="you@example.com" style={{ height: '44px' }}
+                  aria-invalid={fpErr ? 'true' : undefined} aria-describedby={fpErr ? 'fpEmail-err' : undefined} onInput={() => fpErr && setFpErr('')} />
                 <button className="btn btn-primary btn-sm" type="button" id="fpSend" onClick={sendReset} style={{ '--bh': '44px' }}>Send link</button>
               </div>
+              {fpErr && <div className="field-err" id="fpEmail-err" role="alert">{fpErr}</div>}
             </div>
             {err && <p className="form-err" role="alert">{err}{PRELAUNCH && err.startsWith('Incorrect') && <> New here? Accounts open at launch. <button type="button" className="link-btn" onClick={() => openPrelaunch('signup', document.getElementById('sEmail').value.trim())}>Get notified</button></>}</p>}
             <button className="btn btn-primary btn-block btn-lg" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>

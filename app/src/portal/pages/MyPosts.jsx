@@ -13,6 +13,12 @@ export async function lastFamilyPost(me) {
   return data?.last_post_at ? [{ kind: 'family', created_at: data.last_post_at }] : [];
 }
 
+/** What a family can do while waiting for the next free request (depends on whether one is still open). */
+export function cooldownHint(hasOpen) {
+  return hasOpen ? 'Meanwhile you can keep messaging caregivers from your open request.'
+    : 'You can still message caregivers you’ve already talked to in Messages.';
+}
+
 export function nextFreePost(posts, days = 14) {
   const last = posts.filter((p) => p.kind === 'family').map((p) => new Date(p.created_at)).sort((a, b) => b - a)[0];
   if (!last) return null;
@@ -70,7 +76,7 @@ export default function MyPosts() {
         sub={isAgency ? 'Post as many jobs as you need in your subscribed regions. Caregivers there are notified.' : 'Post one free request every 14 days. Each one lets you contact 10 caregivers free.'}
         help={isAgency ? 'Family requests are never visible to agencies.' : 'Requests stay open for 14 days. You can edit them while open; several edits send the post for a quick review.'}
         actions={newBtn} />
-      {cooldown && <Notice icon="hourglass">Your next free request opens on <strong>{fmtDate(cooldown.toISOString(), { weekday: 'long', month: 'long', day: 'numeric' })}</strong>. Meanwhile you can keep messaging caregivers from your open request.</Notice>}
+      {cooldown && <Notice icon="hourglass">Your next free request opens on <strong>{fmtDate(cooldown.toISOString(), { weekday: 'long', month: 'long', day: 'numeric' })}</strong>. {cooldownHint(open.length > 0)}</Notice>}
       {noRegions && <Notice tone="warn" icon="map" action={<Btn size="sm" variant="accent" to={base + '/regions'}>Choose regions</Btn>}>Subscribe to at least one region to post jobs.</Notice>}
       <div style={{ margin: '16px 0' }}><Seg value={tab} onChange={setTab} tabs={[['open', 'Open', data ? open.length : null], ['past', isAgency ? 'Closed' : 'Closed & expired', data ? past.length : null]]} /></div>
       {loading ? <Skel h={170} n={2} />
